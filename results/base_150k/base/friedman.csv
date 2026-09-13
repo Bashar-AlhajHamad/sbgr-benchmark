@@ -1,0 +1,2 @@
+scope,n_blocks,k_algorithms,friedman_chi2,friedman_p,scipy_available,note
+SKY130-BGR,30,6,109.56190476190488,5.070833953447592e-22,1,scipy.friedmanchisquare

@@ -1,0 +1,99 @@
+* SKY130 bandgap reference -- HIGH-DIMENSIONAL variant of bgr_sky130.cir.tmpl.
+*
+* Identical circuit, identical bandgap core, identical specifications. The ONLY difference is
+* the dimensionality of the design space, mirroring the surrogate's SBGR-Highdim case, which
+* also keeps the Base constraints and changes only the number of variables.
+*
+* HOW THE DIMENSIONS GROW, AND WHY IT IS DONE THIS WAY.
+* The surrogate grows 12 -> 30 variables by adding synthetic bounded variables. A real circuit
+* cannot do that: its dimensionality is fixed by its topology. So the growth here comes from
+* removing MATCHING and COMMON-LENGTH assumptions:
+*
+*     base (7 vars)                      highdim (16 vars)
+*     w_pdiff shared by XM1, XM2   ->    w_pdiff + r_wdiff   (XM2 = r_wdiff x XM1)
+*     w_ncasc shared by XM5, XM6   ->    w_ncasc + r_wcasc
+*     w_pmir  shared by XM7, XM8   ->    w_pmir  + r_wmir
+*     l_all   shared by all FETs   ->    l_pdiff, l_ncasc, l_pmir, l_pass  + 3 ratios
+*     w_pass, iss, vbnv            ->    unchanged
+*
+* The second device of each matched pair is a RATIO of the first, bounded to [0.5, 2], rather
+* than an independent absolute size. That choice was forced by measurement, not preference: a
+* first version gave every device a free absolute width and length, and 84 of 96 random points
+* then had NO unity-gain crossing at all -- 94 % of the space was unmeasurable and none of it
+* was feasible, so a campaign there would have been 94 % floor values and carried no
+* information. Bounding the mismatch keeps the amplifier functional while still forcing the
+* optimizer to rediscover matching, and it is the more faithful model of a real design, where
+* matched pairs have tolerances rather than arbitrary sizes.
+*
+* At every ratio = 1 and every length equal, this deck reduces EXACTLY to the base deck:
+*   VREF 1219.90 mV, TC 24.49 ppm/degC, power 47.27 uW, PSRR 56.29 dB,
+*   LG 53.21 dB, PM 62.99 deg, GM 14.86 dB
+* That equivalence is asserted before the case is run; it is the only thing proving this is the
+* same circuit and not a subtly different one.
+*
+* All the ngspice notes in bgr_sky130.cir.tmpl apply unchanged -- `meas ac ... FIND v(x)`
+* returns the REAL PART, `vdb()` is unusable inside meas, `cph()` not `ph()` for phase, `reset`
+* discards every `alter`, and the rail's AC 1 must be off while the loop probe is armed.
+
+.title SKY130 Kuijk bandgap -- high-dimensional variant
+* See the base deck for why ${CORNER} and ${VDD_DC} are placeholders: one netlist serves both the
+* single-corner optimization ('tt', 1.8 V, asserted) and the PVT verification pass.
+.lib ${SKY130_LIB} ${CORNER}
+
+* ===== the sixteen design variables =====
+.param w_pdiff=${W_PDIFF}  r_wdiff=${R_WDIFF}   $ input pair width, and XM2/XM1 mismatch
+.param l_pdiff=${L_PDIFF}  r_ldiff=${R_LDIFF}   $ input pair length, and its mismatch
+.param w_ncasc=${W_NCASC}  r_wcasc=${R_WCASC}   $ NMOS cascode width, and XM6/XM5 mismatch
+.param l_ncasc=${L_NCASC}  r_lcasc=${R_LCASC}
+.param w_pmir=${W_PMIR}    r_wmir=${R_WMIR}     $ top PMOS mirror width, and XM8/XM7 mismatch
+.param l_pmir=${L_PMIR}    r_lmir=${R_LMIR}
+.param w_pass=${W_PASS}    l_pass=${L_PASS}     $ PMOS pass device
+.param iss=${ISS}                               $ tail current, uA
+.param vbnv=${VBNV}                             $ NMOS cascode bias, V
+
+* the mismatched partner of each pair, derived
+.param w_m2='w_pdiff*r_wdiff'  l_m2='l_pdiff*r_ldiff'
+.param w_m6='w_ncasc*r_wcasc'  l_m6='l_ncasc*r_lcasc'
+.param w_m8='w_pmir*r_wmir'    l_m8='l_pmir*r_lmir'
+
+* ===== fixed bandgap core, at the reference trim point =====
+.param N=8 R1=97k R3=10.7k
+.param ib='0.8*iss'
+
+Vdd vdd 0 DC ${VDD_DC} AC 1
+
+* ---- bandgap core (Kuijk), unchanged from the base deck ----
+Rr1 vref nA {R1}
+XQ1 0 0 nA sky130_fd_pr__pnp_05v5_W3p40L3p40
+Rr2 vref nB {R1}
+Rr3 nB nC {R3}
+XQ2 0 0 nC sky130_fd_pr__pnp_05v5_W3p40L3p40 m={N}
+
+* ---- folded-cascode error amplifier, matching no longer imposed ----
+Iss  vdd tail dc 'iss*1u'
+XM1  fA nB tail vdd sky130_fd_pr__pfet_01v8 W={w_pdiff} L={l_pdiff}
+XM2  fB nA tail vdd sky130_fd_pr__pfet_01v8 W={w_m2}    L={l_m2}
+Ib1  fA 0 dc 'ib*1u'
+Ib2  fB 0 dc 'ib*1u'
+Vbn  vbn 0 dc {vbnv}
+XM5  nol  vbn fA 0 sky130_fd_pr__nfet_01v8 W={w_ncasc} L={l_ncasc}
+XM6  nout vbn fB 0 sky130_fd_pr__nfet_01v8 W={w_m6}    L={l_m6}
+XM7  nol  nol vdd vdd sky130_fd_pr__pfet_01v8 W={w_pmir} L={l_pmir}
+XM8  nout nol vdd vdd sky130_fd_pr__pfet_01v8 W={w_m8}   L={l_m8}
+
+* ---- pass device ----
+XMpass vref_d nout_b vdd vdd sky130_fd_pr__pfet_01v8 W={w_pass} L={l_pass}
+
+* ---- start-up leak (driver side of the probe) ----
+Rstart nout 0 80meg
+
+* ===== Tian loop-gain probes, identical to the base deck =====
+* Probe 1 (production) cuts at the pass GATE; probe 2 (audit) at the pass DRAIN. Both are
+* wires in DC. Do NOT cut on the differential sense side: the loop stays closed through the
+* other branch and returns a complete, plausible, WRONG answer with no error message.
+Vz nout nout_b dc 0 ac 0
+Iz 0    nout   dc 0 ac 0
+Vz2 vref_d vref   dc 0 ac 0
+Iz2 0      vref_d dc 0 ac 0
+
+.end

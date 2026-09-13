@@ -1,0 +1,7 @@
+algo,runs,infeasible_runs,viol_vref_count_all,viol_vref_rate_all,viol_vref_count_infeasible,viol_vref_rate_infeasible,viol_tc_count_all,viol_tc_rate_all,viol_tc_count_infeasible,viol_tc_rate_infeasible,viol_loop_gain_count_all,viol_loop_gain_rate_all,viol_loop_gain_count_infeasible,viol_loop_gain_rate_infeasible,viol_phase_margin_count_all,viol_phase_margin_rate_all,viol_phase_margin_count_infeasible,viol_phase_margin_rate_infeasible,viol_gain_margin_count_all,viol_gain_margin_rate_all,viol_gain_margin_count_infeasible,viol_gain_margin_rate_infeasible,viol_power_count_all,viol_power_rate_all,viol_power_count_infeasible,viol_power_rate_infeasible,avg_penalty,max_penalty
+ABC,30,0,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0.0,0.0
+GWO,30,0,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0.0,0.0
+FA,30,0,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0.0,0.0
+PSO,30,0,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0.0,0.0
+GA,30,0,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0.0,0.0
+ACO,30,0,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0,0.0,0,,0.0,0.0

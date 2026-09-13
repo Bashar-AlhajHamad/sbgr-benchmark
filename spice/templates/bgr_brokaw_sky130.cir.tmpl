@@ -1,0 +1,178 @@
+* SKY130 bandgap reference -- BROKAW cell + an NMOS-input folded-cascode error amplifier.
+*
+* WHY THIS DECK EXISTS. Two topologies cannot show whether the optimizer ranking follows the circuit
+* or the problem framing: through two points any ordering is a line. This is a THIRD true bandgap
+* core, structurally distinct from both others:
+*
+*   Kuijk  (bgr_sky130.cir.tmpl)        voltage-mode, PNP diodes, resistor network between vref and
+*                                       the branches; V_REF pinned near the bandgap voltage
+*   Banba  (bgr_banba_sky130.cir.tmpl)  current-mode, PNP diodes, CTAT+PTAT currents summed into a
+*                                       free output resistor; V_REF is a design choice
+*   Brokaw (this deck)                  voltage-mode, NPN differential pair with emitter degeneration;
+*                                       V_REF taken at the shared BASE node
+*
+* WHAT IT DOES NOT DO, stated up front so nobody claims it later: Brokaw does NOT recover the
+* published 798-802 mV V_REF window. Its output is V_BE plus a PTAT term, so like Kuijk it sits near
+* the bandgap voltage. Only the current-mode core has a free output resistor. Brokaw is here for
+* topological diversity, not for fidelity to the published specification set.
+*
+* WHY NPN IS AVAILABLE AT ALL. SKY130 provides
+*     .subckt sky130_fd_pr__npn_05v5_W1p00L1p00 c b e s
+* with all four terminals independent and bf = 39.28. The PNP ties its substrate to the collector
+* internally, which is why the other two decks can only use it diode-connected. Brokaw needs a real
+* collector, so it is buildable with the NPN and was not buildable with the PNP.
+*
+*   V_REF = V_BE1 + 2*(r1/r2)*V_T*ln(n_npn)
+*
+* Q1 is one unit and Q2 is n_npn units, so at equal collector currents V_BE1 - V_BE2 = V_T*ln(n_npn).
+* That difference appears across r2 in Q2's emitter, making I2 = V_T*ln(n_npn)/r2 proportional to
+* absolute temperature. Both emitter currents return through r1, giving a PTAT rise of 2*I2*r1 at the
+* common emitter node, and V_REF is that rise plus Q1's V_BE. The amplifier forces the two collectors
+* equal, which is what makes I1 = I2 and hence makes the ln(n) relation hold.
+*
+* THE AMPLIFIER HAS AN NMOS INPUT PAIR, AND THAT WAS FORCED BY MEASUREMENT -- not a style choice.
+* The first version reused the PMOS-input amplifier of the other two decks and failed in a way worth
+* recording, because the failure is a hard rail-voltage argument rather than a sizing problem:
+*
+*   Brokaw puts V_REF at the BASE node, so the common emitter node sits at V_REF - V_BE ~ 0.5 V and
+*   the collectors must clear it by V_CE >~ 0.2 V, i.e. sit at 0.7 V or above. But a PMOS input pair
+*   needs its tail above the input common mode by |Vth| = 1.033 V measured for pfet_01v8 at L = 1 um,
+*   which puts the tail beyond 1.75 V on a 1.8 V rail with no headroom left. Measured outcome of that
+*   version: collectors at 0.65 V against a 0.57 V emitter node, i.e. V_CE = 0.08 V, both NPNs in
+*   SATURATION, and the consequences visible downstream -- V_REF 1.2664 V, TC 669 ppm/degC, phase
+*   margin -96.5 deg. The deck simulated cleanly and produced numbers throughout; nothing failed.
+*
+* An NMOS pair inverts the constraint: nfet_01v8 measures Vth = 0.615 V, so inputs at 0.8 V put the
+* tail near 0.1 V, which an ideal sink can hold. The fold is PMOS and the output mirror NMOS -- the
+* mirror image of the other decks. The polarity comes out IDENTICAL: nA on XM2 still gives
+* nA -> nout inverting, and nB on XM1 still gives nB -> nout non-inverting, so the wiring transfers.
+* Circuit B hit the same 1.033 V wall and took the same NMOS-pair fix.
+*
+* IDEAL ELEMENTS, disclosed as in the other two decks: the tail current, the fold sources and the
+* cascode bias are ideal, and the resistors are ideal -- no PDK resistor model, hence no resistor
+* temperature coefficient and no mismatch. Here the RATIO r1/r2 sets V_REF and ratios of like
+* resistors track over temperature, so first-order behaviour survives; absolute value sets the branch
+* current, so a real resistor TC would make power and PSRR drift in a way this deck does not capture.
+*
+* LOOP PROBES: TWO independent cuts, as in the Kuijk deck and unlike Banba. Brokaw has a pass device,
+* so both its gate and its drain are single-wire chokepoints and probe agreement is real evidence.
+* Do NOT cut on the sense side: it is differential (nA and nB both feed the input pair), so cutting
+* one branch leaves the loop closed through the other and yields a complete, plausible, WRONG answer.
+*
+* Node names match the other decks exactly (vref, nA, nB, nout, nout_b, vref_d), so spice_problem.py
+* drives this deck with no change to the measurement path.
+
+.title SKY130 Brokaw bandgap -- NMOS-input folded-cascode error amplifier
+* ${CORNER} is 'tt' for every OPTIMIZATION run; the placeholder exists so the PVT pass can
+* re-simulate the SAME deck at ss/ff/sf/fs without a second copy of the netlist.
+.lib ${SKY130_LIB} ${CORNER}
+
+* ===== the seven design variables =====
+* Six are identical to the Kuijk Base case, including w_pass -- Brokaw has a pass device in the same
+* position. The seventh differs in meaning and therefore in range: the cascode bias is now a PMOS
+* gate referred to the rail, not an NMOS gate referred to ground, so vbpv replaces vbnv.
+.param w_ndiff=${W_NDIFF}      $ NMOS input pair XM1/XM2 width, um
+.param w_pcasc=${W_PCASC}      $ PMOS cascode XM5/XM6 width, um
+.param w_nmir=${W_NMIR}        $ NMOS output mirror XM7/XM8 width, um
+.param w_pass=${W_PASS}        $ PMOS pass device width, um
+.param l_all=${L_ALL}          $ common channel length, um
+.param iss=${ISS}              $ tail current, uA
+.param vbpv=${VBPV}            $ PMOS cascode bias, V
+
+* ===== fixed Brokaw core, at its trim point =====
+* Declared LOWERCASE and one per line. Not cosmetic: `alterparam` is silently accepted on a name
+* ngspice does not have, so an UPPERCASE name on a shared .param line changes nothing and reports
+* nothing. On the Banba deck that cost a trim sweep whose seven different values returned
+* byte-identical metrics -- the tell was that the sweep was too consistent, not that it failed.
+*
+* Zero first-order TC needs 2*(r1/r2)*(k/q)*ln(n_npn) = -dV_BE/dT, i.e. r1/r2 = 1.7/(2*0.1792) = 4.74
+* for n_npn = 8. r2 sets the branch current: I2 = V_T*ln(8)/r2 = 53.77 mV / r2.
+*
+* ONE DEGREE OF FREEDOM, as in the Kuijk core. The ratio r1/r2 sets BOTH V_REF and the PTAT/CTAT
+* balance, so they cannot be chosen independently. The Kuijk deck resolves this by matching the
+* reference design's published V_REF and reporting whatever TC results; the same rule is applied here,
+* to the same target of 1.2199 V, so the two voltage-mode cases share an anchor voltage.
+*
+* rl WAS THE REAL PROBLEM, and the first value was wrong for a reason worth recording. rl places the
+* collectors at nC = vdd - I*rl. The branch current is PTAT, so the drop across rl GROWS with
+* temperature and nC FALLS -- the opposite of what the NPN needs. At rl = 430 k the collectors start
+* at 0.93 V (V_CE = 0.44 V) and reach 0.83 V at 125 C, close enough to the 0.48 V emitter node that
+* the devices enter saturation at the hot end. The signature was that V_REF fell 79 mV between 27 and
+* 125 C while r1 barely moved TC at all: sweeping r1 from 100 k to 128 k left TC between 394 and
+* 450 ppm/degC, which is not what a PTAT/CTAT imbalance looks like.
+*
+* Sweeping rl instead, at fixed r1, is decisive:
+*     rl 430 k  V_CE 0.44 V  TC 397.5 ppm      rl 200 k  V_CE 0.91 V  TC 19.4 ppm
+*     rl 330 k  V_CE 0.65 V  TC  90.4 ppm      rl 160 k  V_CE 0.99 V  TC 21.0 ppm
+*     rl 260 k  V_CE 0.79 V  TC  18.0 ppm      rl 120 k  V_CE 1.07 V  TC 23.7 ppm
+* rl = 260 k is the minimum. Note this is only affordable because the input pair is NMOS: collectors
+* at 1.27 V would be unsensable by a PMOS pair on a 1.8 V rail, which is the same wall that forced the
+* NMOS pair in the first place.
+* Measured at this trim: V_REF 1.2199 V, TC 18.0 ppm/degC (Kuijk: 1219.90 mV, 24.49 ppm/degC).
+.param n_npn=8
+.param r2=26.9k
+.param r1=115.6k
+.param rl=260.0k
+
+* fold sources must exceed iss/2 or the fold starves; tie them structurally so a starved fold -- the
+* dominant non-convergence mode -- cannot be proposed at all.
+.param ib='0.8*iss'
+
+* AC 1 V on the rail makes |v(vref)| the supply-to-output transfer directly.
+Vdd vdd 0 DC ${VDD_DC} AC 1
+
+* ---- Brokaw core: NPN differential pair, shared base at vref, emitter degeneration on Q2 ----
+* Pin order is (collector, base, emitter, substrate); substrate to ground.
+XQ1 nA vref nE  0 sky130_fd_pr__npn_05v5_W1p00L1p00
+XQ2 nB vref nE2 0 sky130_fd_pr__npn_05v5_W1p00L1p00 m={n_npn}
+Rdeg nE2 nE {r2}
+Rtail nE 0 {r1}
+
+* ---- equal collector loads; the amplifier forces nA = nB, hence I1 = I2 ----
+Rl1 vdd nA {rl}
+Rl2 vdd nB {rl}
+
+* ---- NMOS-input folded-cascode error amplifier ----
+* POLARITY, derived rather than assumed. Raising v(vref) raises both V_BE, but Q2's current is
+* degenerated by r2 so Q1's rises more, pulling nA DOWN faster than nB. Negative feedback therefore
+* needs nA -> nout inverting and nB -> nout non-inverting. With an NMOS pair: nA up raises XM2's
+* current, which takes more of Ib2 away from the PMOS cascode XM6, so less is delivered to nout and
+* nout falls -- inverting, as required. nB up lowers the NMOS mirror gate through XM5 and nol, so XM8
+* sinks less and nout rises -- non-inverting. Identical assignment to the other two decks.
+Iss  tail 0 dc 'iss*1u'
+XM1  fA nB tail 0 sky130_fd_pr__nfet_01v8 W={w_ndiff} L={l_all}
+XM2  fB nA tail 0 sky130_fd_pr__nfet_01v8 W={w_ndiff} L={l_all}
+Ib1  vdd fA dc 'ib*1u'
+Ib2  vdd fB dc 'ib*1u'
+Vbp  vbp 0 dc {vbpv}
+XM5  nol  vbp fA vdd sky130_fd_pr__pfet_01v8 W={w_pcasc} L={l_all}
+XM6  nout vbp fB vdd sky130_fd_pr__pfet_01v8 W={w_pcasc} L={l_all}
+XM7  nol  nol 0 0 sky130_fd_pr__nfet_01v8 W={w_nmir} L={l_all}
+XM8  nout nol 0 0 sky130_fd_pr__nfet_01v8 W={w_nmir} L={l_all}
+
+* ---- pass device: nout regulates vref, which supplies the shared base node ----
+* Both pins are renamed so the two Tian probes sit in the loop: the gate is nout_b (probe 1,
+* production) and the drain is vref_d (probe 2, independent audit).
+XMpass vref_d nout_b vdd vdd sky130_fd_pr__pfet_01v8 W={w_pass} L={l_all}
+
+* ---- start-up leak (stays on the driver side of probe 1) ----
+* With no current the collectors sit at vdd and the core has a valid all-off DC solution, so the deck
+* needs a path that makes it unstable. Same device and value as the other two decks, so the three
+* cases are not separated by their start-up arrangement.
+Rstart nout 0 80meg
+
+* ===== probe 1, PRODUCTION: cut at the pass gate. A = nout, B = nout_b =====
+* These two names are an INTERFACE: the harness measures mag(v(nout)-v(nout_b)) with @Vz[acmag]=1 and
+* refuses the candidate unless it is exactly 1. The explicit "ac 0" sets the ac-given flag so a later
+* `alter @Vz[acmag]=1` takes effect; `reset` discards every alter, so the probe is re-armed each time.
+Vz nout nout_b dc 0 ac 0
+Iz 0    nout   dc 0 ac 0
+
+* ===== probe 2, INDEPENDENT AUDIT: cut at the pass-device drain instead of its gate =====
+* A = vref_d (driven by the pass device), B = vref (feeds the core). Also a single-wire chokepoint.
+* Arming this probe instead of probe 1 measures the same loop cut somewhere else, so agreement
+* between the two is real evidence rather than a self-consistency check. Both are wires in DC.
+Vz2 vref_d vref   dc 0 ac 0
+Iz2 0      vref_d dc 0 ac 0
+
+.end

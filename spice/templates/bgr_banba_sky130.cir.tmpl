@@ -1,0 +1,177 @@
+* SKY130 bandgap reference -- CURRENT-MODE (Banba) core + the same folded-cascode error amplifier.
+*
+* WHY THIS DECK EXISTS. The reference design this benchmark is formulated from -- Hoang et al. /
+* Nguyen et al., Spectre library `quocthang`, cell `BGR_modified_3` -- is current-mode Banba-style:
+* three matched PMOS legs drive V_X, V_Y and V_REF, the amplifier forces V_X = V_Y, and the summed
+* CTAT+PTAT current is delivered into a separate output resistor:
+*
+*       V_REF = R_ref * ( V_EB / R_CTAT  +  dV_EB / R_PTAT )
+*
+* Our first SKY130 deck (bgr_sky130.cir.tmpl) is voltage-mode KUIJK instead. That choice had a
+* documented cost: it pins V_REF near the bandgap voltage (1.2199 V measured), so TWO of the six
+* published 65-nm specifications could not be transplanted -- the V_REF window of 798-802 mV was
+* unreachable in that topology and had to be re-anchored. This deck removes that gap. With a free
+* output resistor V_REF becomes a design choice, so the PUBLISHED window is usable as published.
+*
+* This is therefore not an additional topology tried for its own sake; it is the topology the
+* reference design actually uses, and it makes the benchmark faithful to its own source.
+*
+* THE CORE TRIM POINT, derived rather than fitted:
+*   zero first-order TC needs  R_PTAT/R_CTAT = -(d dV_EB/dT)/(d V_EB/dT)
+*                            = (ln(N) k/q) / 1.7 mV/K = 0.1792/1.7 = 0.105
+*   the bandgap sum is then   V_EB + dV_EB * R_CTAT/R_PTAT = 0.7325 + 0.510 = 1.2425 V
+*     (V_EB = 0.7325 V is not assumed: it is what the Kuijk deck measures at this PNP and this
+*      branch current, since VREF = V_EB + 9.065*V_T*ln(8) = 1.2199 V there)
+*   so 800 mV needs           R_ref/R_CTAT = 0.800/1.2425 = 0.644
+* The reference netlist uses R_ref/R_CTAT = 36.5/55.3 = 0.660. The two agree to 2.5 %, which is
+* the check that the derivation is right rather than merely arithmetically consistent.
+*
+* Branch current is set ONLY by the core: the loop forces nA = nB, hence
+*       I_Q = V_T*ln(N)/R_PTAT      and      V_REF = R_ref*(V_EB/R_CTAT + I_Q)
+* independent of every amplifier variable. So V_REF stays at its trim point under optimization and
+* the V_REF constraint measures loop-gain-limited error and mirror mismatch, exactly as in the
+* Kuijk deck -- the two cases stay comparable.
+*
+* THE SEVEN DESIGN VARIABLES are the amplifier plus the core mirror, matching the Kuijk Base case
+* in count and in kind. `w_pass` there becomes `w_core` here: the Kuijk pass device and the Banba
+* mirror leg occupy the same position in the loop -- the single element the amplifier output drives.
+*
+* IDEAL ELEMENTS, disclosed for the same reasons as in the Kuijk deck: the tail current, the fold
+* sinks and the cascode bias are ideal sources, and the resistors are ideal (no PDK resistor model,
+* hence no resistor temperature coefficient and no mismatch). In a current-mode core the resistor
+* RATIOS set both TC and V_REF, and ratios of like resistors track over temperature, so the
+* first-order behaviour survives; the absolute value sets the branch current, so a real resistor TC
+* would make power and PSRR drift with temperature in a way this deck does not capture.
+*
+* LOOP PROBE -- ONE valid cut, unlike the Kuijk deck. Kuijk offers two single-wire chokepoints (the
+* pass gate and the pass drain), so probe agreement there is real evidence. In Banba the only
+* single-wire chokepoint is the amplifier output driving the three mirror gates: the sense side is
+* differential (nA and nB both feed the input pair) and the V_REF leg is a replica OUTSIDE the loop,
+* so cutting either would return a complete and plausible WRONG answer. Vz2/Iz2 are therefore a
+* second cut on the SAME wire; they exist so that the harness's probe-disarming sequence still
+* applies cleanly, and agreement between them is trivial here rather than evidence. Stated so that
+* nobody later reads it as a second independent audit.
+*
+* Node names match the Kuijk deck exactly (vref, nA, nB, nout, nout_b), so spice_problem.py drives
+* this deck with no change to the measurement path.
+
+.title SKY130 Banba current-mode bandgap -- folded-cascode error amplifier
+* ${CORNER} is 'tt' for every OPTIMIZATION run; the placeholder exists so the PVT pass can
+* re-simulate the SAME deck at ss/ff/sf/fs without a second copy of the netlist.
+.lib ${SKY130_LIB} ${CORNER}
+
+* ===== the seven design variables (amplifier + core mirror; the core stays at its trim point) =====
+.param w_pdiff=${W_PDIFF}      $ input pair XM1/XM2 width, um
+.param w_ncasc=${W_NCASC}      $ NMOS cascode XM5/XM6 width, um
+.param w_pmir=${W_PMIR}        $ amplifier top PMOS mirror XM7/XM8 width, um
+.param w_core=${W_CORE}        $ core current-mirror leg width XMC1/XMC2/XMC3, um
+.param l_all=${L_ALL}          $ common channel length, um
+.param iss=${ISS}              $ tail current, uA
+.param vbnv=${VBNV}            $ NMOS cascode bias, V
+
+* ===== fixed current-mode core, at the derived trim point =====
+* N = 8 is the standard emitter ratio, as in the Kuijk deck.
+* R_PTAT sets the branch current: I_Q = V_T*ln(8)/R_PTAT = 53.77 mV / 24.8 k = 2.17 uA.
+*
+* MEASURED TRIM, replacing the analytic estimate. The derivation gave R_PTAT/R_CTAT = 0.105, i.e.
+* R_PTAT = 26.2 k; simulated, that is CTAT-heavy (V_REF falls 801.6 -> 791.2 mV over -40..125 C) and
+* gives TC = 78 ppm/C. Sweeping R_PTAT locates the turning point between PTAT-dominant and
+* CTAT-dominant behaviour at 24.8 k:
+*     24.2 k  42.4 ppm (rises)      25.0 k  21.2 ppm (falls)
+*     24.6 k  25.2 ppm (rises)      25.2 k  28.7 ppm (falls)
+*     24.8 k  18.5 ppm  <- flattest
+* The analytic estimate was 5.6 % high because it assumed dV_EB/dT = -1.7 mV/K, which is a textbook
+* figure rather than this PNP at this current density. Recorded because the estimate is what makes
+* the trim reproducible, and its error is what makes the measurement necessary.
+*
+* R_ref then sets the output level: 159.90 k puts V_REF at 800.47 mV, inside the PUBLISHED
+* 798-802 mV window -- the specification the Kuijk deck could not reach at all.
+* Measured at this trim: V_REF 800.47 mV, TC 18.36 ppm/C (Kuijk: 1219.90 mV, 24.49 ppm/C).
+* Declared LOWERCASE and one per line, matching the design variables. That is not cosmetic:
+* `alterparam` is silently accepted on a name ngspice does not have, so a mismatch changes nothing
+* and reports nothing. A first attempt to trim these with UPPERCASE names on a single .param line
+* returned byte-identical metrics for seven different R_ptat values -- the tell was that the sweep
+* was too consistent, not that anything failed.
+.param n_pnp=8
+.param r_ptat=24.8k
+.param r_ctat=248.5k
+.param r_ref=159.90k
+* fold sinks must exceed iss/2 or the fold starves; tie them structurally so that a starved fold --
+* the dominant non-convergence mode -- cannot be proposed at all.
+.param ib='0.8*iss'
+
+* AC 1 V on the rail makes |v(vref)| the supply-to-output transfer directly.
+Vdd vdd 0 DC ${VDD_DC} AC 1
+
+* ---- core: three matched PMOS legs, gates driven by the amplifier output ----
+* The gate net is nout_c, the far side of BOTH loop probes, so arming Vz cuts every path
+* from the amplifier output to the core.
+XMC1 nA   nout_c vdd vdd sky130_fd_pr__pfet_01v8 W={w_core} L={l_all}
+XMC2 nB   nout_c vdd vdd sky130_fd_pr__pfet_01v8 W={w_core} L={l_all}
+XMC3 vref nout_c vdd vdd sky130_fd_pr__pfet_01v8 W={w_core} L={l_all}
+
+* ---- branch A: unit PNP, diode-connected, in parallel with R_CTAT ----
+XQ1 0 0 nA sky130_fd_pr__pnp_05v5_W3p40L3p40
+Rca nA 0 {r_ctat}
+
+* ---- branch B: R_PTAT in series with the N-times PNP, in parallel with R_CTAT ----
+Rpt nB nC {r_ptat}
+XQ2 0 0 nC sky130_fd_pr__pnp_05v5_W3p40L3p40 m={n_pnp}
+Rcb nB 0 {r_ctat}
+
+* ---- output leg: the summed CTAT+PTAT current into the free output resistor ----
+Rrf vref 0 {r_ref}
+
+* ---- folded-cascode error amplifier, PMOS input pair ----
+* Connections are IDENTICAL to the Kuijk deck, and that is a result rather than a convenience.
+* Branch B carries R_PTAT in series with its diode, so its incremental resistance is the larger:
+* raising the mirror current raises nB faster than nA. Negative feedback therefore needs
+* nB -> nout to be non-inverting and nA -> nout inverting, which is what this amplifier already
+* provides (nB on XM1, nA on XM2). The Kuijk core has the same asymmetry -- R3 in series in the
+* nB branch -- so the polarity carries over unchanged.
+Iss  vdd tail dc 'iss*1u'
+XM1  fA nB tail vdd sky130_fd_pr__pfet_01v8 W={w_pdiff} L={l_all}
+XM2  fB nA tail vdd sky130_fd_pr__pfet_01v8 W={w_pdiff} L={l_all}
+Ib1  fA 0 dc 'ib*1u'
+Ib2  fB 0 dc 'ib*1u'
+Vbn  vbn 0 dc {vbnv}
+XM5  nol  vbn fA 0 sky130_fd_pr__nfet_01v8 W={w_ncasc} L={l_all}
+XM6  nout vbn fB 0 sky130_fd_pr__nfet_01v8 W={w_ncasc} L={l_all}
+XM7  nol  nol vdd vdd sky130_fd_pr__pfet_01v8 W={w_pmir} L={l_all}
+XM8  nout nol vdd vdd sky130_fd_pr__pfet_01v8 W={w_pmir} L={l_all}
+
+* ---- start-up leak ----
+* The all-off state (mirrors off, nout at vdd, every branch at 0 V) is a valid DC solution of this
+* core, so the deck needs a path that makes it unstable. An 80 Meg leak pulls the amplifier output
+* down by a few mV at zero current, which turns the mirrors on; at the operating point it draws
+* ~10 nA and is negligible in the power budget. Same device and same value as the Kuijk deck, so
+* the two cases are not separated by their start-up arrangement.
+Rstart nout 0 80meg
+
+* ===== Tian loop-gain probe: node A = nout (amplifier output), node B = nout_b =====
+* These two names are an INTERFACE, not a choice: the harness measures mag(v(nout)-v(nout_b))
+* with @Vz[acmag]=1 and refuses the candidate unless it is exactly 1. Naming the amplifier
+* output anything else puts the production probe on the wrong wire, and the guard then reads
+* |dV| = 0 -- which is what it is for.
+* Vz with dc 0 is an ideal wire and Iz with dc 0 is an open circuit, so with both acmag = 0 the
+* loop stays closed and every other analysis is unperturbed.
+*
+* The mirror-gate net is the ONLY single-wire chokepoint in this loop. Do NOT cut on the sense side:
+* it is differential, so cutting one branch leaves the loop closed through the other and yields a
+* complete, plausible, WRONG answer with no error message. Do NOT cut the V_REF leg either: XMC3 is
+* a replica outside the loop, so a cut there measures no loop at all.
+*
+* The explicit "ac 0" is required, not cosmetic: it sets the ac-given flag so that a later
+* `alter @Vz[acmag]=1` takes effect. `reset` discards every alter, so the probe must be re-armed
+* after each reset.
+Vz nout nout_b dc 0 ac 0
+Iz 0    nout   dc 0 ac 0
+
+* ===== second cut, on the SAME wire -- present for harness compatibility, NOT an audit =====
+* See the header: Banba admits one valid Tian cut, so agreement between these two is trivial. They
+* exist because the harness disarms Vz2/Iz2 alongside Vz/Iz before every loop-gain run, and `alter`
+* on a non-existent element is an error rather than a no-op.
+Vz2 nout_b nout_c dc 0 ac 0
+Iz2 0      nout_b dc 0 ac 0
+
+.end

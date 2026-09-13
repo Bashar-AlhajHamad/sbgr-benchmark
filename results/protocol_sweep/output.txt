@@ -1,0 +1,205 @@
+E:\University\ABC\code>py protocol_sweep.py
+surrogate protocol sweep | runs=30 | full
+
+the two orderings being attributed between (lower average rank is better)
+  published surrogate  D=12, SN=40, 150k : ABC  <  PSO  <  GA  <  ACO  <  FA  <  GWO
+  SPICE campaign       D= 7, SN=20, 2.5k : GWO  <  ABC  <  ACO  <  PSO  <  FA  <  GA
+
+=== GATE  published protocol  D=12 SN=40 budget=150000   (789s)
+  chi2 = 46.43   p = 7.42e-09
+  ranking : ABC  <  PSO  <  GA  <  ACO  <  FA  <  GWO
+  ranks   : ABC=2.300  GWO=4.933  FA=4.633  PSO=3.000  GA=3.033  ACO=3.100
+  success : ABC=87%  GWO=40%  FA=53%  PSO=80%  GA=67%  ACO=53%
+  Spearman vs published +1.000   vs SPICE campaign -0.143
+
+  GATE PASSED: rho = +1.000 against the published ranks, so this harness reproduces the published campaign and the cells below can be trusted.
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=40 budget=2500  seed family 42   (20s)
+  chi2 = 35.12   p = 1.42e-06
+  ranking : ABC  <  PSO  <  ACO  <  GA  <  FA  <  GWO
+  ranks   : ABC=2.300  GWO=4.733  FA=4.133  PSO=2.667  GA=3.700  ACO=3.467
+  success : ABC=90%  GWO=67%  FA=67%  PSO=67%  GA=50%  ACO=87%
+  Spearman vs published +0.943   vs SPICE campaign +0.029
+  ABC scouts: 0.00/run   limit=168   generations=31   trial high-water=129   <-- SCOUT PHASE NEVER FIRES
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=40 budget=2500  seed family 777   (20s)
+  chi2 = 50.38   p = 1.16e-09
+  ranking : PSO  <  ACO  <  ABC  <  GA  <  GWO  <  FA
+  ranks   : ABC=2.900  GWO=4.767  FA=4.800  PSO=2.167  GA=3.533  ACO=2.833
+  success : ABC=100%  GWO=93%  FA=77%  PSO=87%  GA=73%  ACO=90%
+  Spearman vs published +0.657   vs SPICE campaign +0.086
+  ABC scouts: 0.00/run   limit=168   generations=31   trial high-water=125   <-- SCOUT PHASE NEVER FIRES
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=40 budget=2500  seed family 20260806   (21s)
+  chi2 = 40.89   p = 9.87e-08
+  ranking : PSO  <  ABC  <  ACO  <  GA  <  FA  <  GWO
+  ranks   : ABC=2.633  GWO=4.750  FA=4.350  PSO=2.467  GA=3.967  ACO=2.833
+  success : ABC=87%  GWO=80%  FA=73%  PSO=73%  GA=53%  ACO=87%
+  Spearman vs published +0.886   vs SPICE campaign -0.086
+  ABC scouts: 0.00/run   limit=168   generations=31   trial high-water=138   <-- SCOUT PHASE NEVER FIRES
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=40 budget=2500  seed family 999983   (20s)
+  chi2 = 32.93   p = 3.88e-06
+  ranking : ABC  <  PSO  <  ACO  <  GA  <  FA  <  GWO
+  ranks   : ABC=2.633  GWO=4.667  FA=4.500  PSO=2.900  GA=3.400  ACO=2.900
+  success : ABC=90%  GWO=77%  FA=67%  PSO=63%  GA=63%  ACO=80%
+  Spearman vs published +0.899   vs SPICE campaign +0.058
+  ABC scouts: 0.00/run   limit=168   generations=31   trial high-water=148   <-- SCOUT PHASE NEVER FIRES
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=20 budget=2500  seed family 42   (15s)
+  chi2 = 33.75   p = 2.67e-06
+  ranking : ACO  <  ABC  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.600  GWO=4.800  FA=3.833  PSO=3.133  GA=4.067  ACO=2.567
+  success : ABC=87%  GWO=73%  FA=73%  PSO=57%  GA=47%  ACO=77%
+  Spearman vs published +0.543   vs SPICE campaign +0.086
+  ABC scouts: 0.38/run   limit=84   generations=62   trial high-water=96
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=20 budget=2500  seed family 777   (15s)
+  chi2 = 42.72   p = 4.20e-08
+  ranking : ACO  <  PSO  <  ABC  <  FA  <  GA  <  GWO
+  ranks   : ABC=3.233  GWO=5.000  FA=3.667  PSO=2.633  GA=4.167  ACO=2.300
+  success : ABC=97%  GWO=87%  FA=87%  PSO=83%  GA=67%  ACO=83%
+  Spearman vs published +0.486   vs SPICE campaign -0.029
+  ABC scouts: 0.25/run   limit=84   generations=62   trial high-water=103
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=20 budget=2500  seed family 20260806   (15s)
+  chi2 = 46.23   p = 8.16e-09
+  ranking : ABC  <  ACO  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.200  GWO=4.967  FA=3.967  PSO=3.000  GA=4.167  ACO=2.700
+  success : ABC=87%  GWO=77%  FA=77%  PSO=70%  GA=50%  ACO=70%
+  Spearman vs published +0.714   vs SPICE campaign +0.143
+  ABC scouts: 0.38/run   limit=84   generations=62   trial high-water=93
+
+=== CONTROL  surrogate at the SPICE protocol  D=7 SN=20 budget=2500  seed family 999983   (15s)
+  chi2 = 38.17   p = 3.49e-07
+  ranking : ACO  <  ABC  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.733  GWO=4.867  FA=3.967  PSO=2.933  GA=4.067  ACO=2.433
+  success : ABC=83%  GWO=53%  FA=60%  PSO=60%  GA=43%  ACO=73%
+  Spearman vs published +0.543   vs SPICE campaign +0.086
+  ABC scouts: 0.50/run   limit=84   generations=62   trial high-water=100
+
+=== SN sweep  D=7 SN=6 budget=2500   (11s)
+  chi2 = 47.18   p = 5.22e-09
+  ranking : ABC  <  ACO  <  PSO  <  GA  <  FA  <  GWO
+  ranks   : ABC=2.033  GWO=5.200  FA=3.967  PSO=3.167  GA=3.500  ACO=3.133
+  success : ABC=83%  GWO=50%  FA=43%  PSO=43%  GA=47%  ACO=57%
+  Spearman vs published +0.829   vs SPICE campaign +0.086
+  ABC scouts: 7.50/run   limit=25   generations=208   trial high-water=31
+
+=== SN sweep  D=7 SN=10 budget=2500   (12s)
+  chi2 = 36.88   p = 6.34e-07
+  ranking : ACO  <  ABC  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.600  GWO=4.967  FA=3.700  PSO=3.533  GA=3.800  ACO=2.400
+  success : ABC=93%  GWO=60%  FA=70%  PSO=47%  GA=47%  ACO=73%
+  Spearman vs published +0.543   vs SPICE campaign +0.086
+  ABC scouts: 2.12/run   limit=42   generations=125   trial high-water=51
+
+=== SN sweep  D=7 SN=12 budget=2500   (13s)
+  chi2 = 42.48   p = 4.72e-08
+  ranking : ACO  <  ABC  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.533  GWO=4.967  FA=3.933  PSO=3.233  GA=4.000  ACO=2.333
+  success : ABC=87%  GWO=67%  FA=63%  PSO=53%  GA=37%  ACO=77%
+  Spearman vs published +0.543   vs SPICE campaign +0.086
+  ABC scouts: 1.50/run   limit=50   generations=104   trial high-water=60
+
+=== SN sweep  D=7 SN=16 budget=2500   (14s)
+  chi2 = 45.39   p = 1.21e-08
+  ranking : ACO  <  ABC  <  PSO  <  GA  <  FA  <  GWO
+  ranks   : ABC=2.800  GWO=4.833  FA=4.000  PSO=3.500  GA=3.967  ACO=1.900
+  success : ABC=90%  GWO=73%  FA=67%  PSO=50%  GA=50%  ACO=77%
+  Spearman vs published +0.657   vs SPICE campaign +0.029
+  ABC scouts: 0.88/run   limit=67   generations=78   trial high-water=80
+
+=== SN sweep  D=7 SN=20 budget=2500   (15s)
+  chi2 = 33.75   p = 2.67e-06
+  ranking : ACO  <  ABC  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.600  GWO=4.800  FA=3.833  PSO=3.133  GA=4.067  ACO=2.567
+  success : ABC=87%  GWO=73%  FA=73%  PSO=57%  GA=47%  ACO=77%
+  Spearman vs published +0.543   vs SPICE campaign +0.086
+  ABC scouts: 0.38/run   limit=84   generations=62   trial high-water=96
+
+=== SN sweep  D=7 SN=30 budget=2500   (18s)
+  chi2 = 47.81   p = 3.88e-09
+  ranking : ACO  <  PSO  <  ABC  <  GA  <  GWO  <  FA
+  ranks   : ABC=2.667  GWO=4.600  FA=4.900  PSO=2.633  GA=3.667  ACO=2.533
+  success : ABC=90%  GWO=80%  FA=63%  PSO=60%  GA=63%  ACO=83%
+  Spearman vs published +0.543   vs SPICE campaign +0.143
+  ABC scouts: 0.38/run   limit=126   generations=41   trial high-water=154
+
+=== SN sweep  D=7 SN=40 budget=2500   (22s)
+  chi2 = 35.12   p = 1.42e-06
+  ranking : ABC  <  PSO  <  ACO  <  GA  <  FA  <  GWO
+  ranks   : ABC=2.300  GWO=4.733  FA=4.133  PSO=2.667  GA=3.700  ACO=3.467
+  success : ABC=90%  GWO=67%  FA=67%  PSO=67%  GA=50%  ACO=87%
+  Spearman vs published +0.943   vs SPICE campaign +0.029
+  ABC scouts: 0.00/run   limit=168   generations=31   trial high-water=129   <-- SCOUT PHASE NEVER FIRES
+
+=== budget sweep  D=7 SN=40 budget=2500   [this budget would cost 52 CPU-h in SPICE, 13 h on 4 workers]   (21s)
+  chi2 = 35.12   p = 1.42e-06
+  ranking : ABC  <  PSO  <  ACO  <  GA  <  FA  <  GWO
+  ranks   : ABC=2.300  GWO=4.733  FA=4.133  PSO=2.667  GA=3.700  ACO=3.467
+  success : ABC=90%  GWO=67%  FA=67%  PSO=67%  GA=50%  ACO=87%
+  Spearman vs published +0.943   vs SPICE campaign +0.029
+  ABC scouts: 0.00/run   limit=168   generations=31   trial high-water=129   <-- SCOUT PHASE NEVER FIRES
+
+=== budget sweep  D=7 SN=40 budget=5000   [this budget would cost 104 CPU-h in SPICE, 26 h on 4 workers]   (41s)
+  chi2 = 36.93   p = 6.18e-07
+  ranking : ABC  <  ACO  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.467  GWO=4.600  FA=4.067  PSO=3.067  GA=4.267  ACO=2.533
+  success : ABC=93%  GWO=80%  FA=67%  PSO=67%  GA=53%  ACO=87%
+  Spearman vs published +0.714   vs SPICE campaign +0.143
+  ABC scouts: 0.25/run   limit=168   generations=62   trial high-water=188
+
+=== budget sweep  D=7 SN=40 budget=10000   [this budget would cost 208 CPU-h in SPICE, 52 h on 4 workers]   (83s)
+  chi2 = 48.42   p = 2.92e-09
+  ranking : ABC  <  ACO  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.200  GWO=4.833  FA=4.033  PSO=3.133  GA=4.333  ACO=2.467
+  success : ABC=93%  GWO=77%  FA=67%  PSO=67%  GA=57%  ACO=87%
+  Spearman vs published +0.714   vs SPICE campaign +0.143
+  ABC scouts: 0.50/run   limit=168   generations=125   trial high-water=188
+
+=== budget sweep  D=7 SN=40 budget=20000   [this budget would cost 416 CPU-h in SPICE, 104 h on 4 workers]   (165s)
+  chi2 = 44.38   p = 1.94e-08
+  ranking : ABC  <  ACO  <  PSO  <  FA  <  GA  <  GWO
+  ranks   : ABC=2.267  GWO=4.733  FA=4.133  PSO=2.967  GA=4.300  ACO=2.600
+  success : ABC=93%  GWO=77%  FA=67%  PSO=67%  GA=57%  ACO=87%
+  Spearman vs published +0.714   vs SPICE campaign +0.143
+  ABC scouts: 0.88/run   limit=168   generations=250   trial high-water=188
+
+=== budget sweep  D=7 SN=40 budget=40000   [this budget would cost 832 CPU-h in SPICE, 208 h on 4 workers]   (327s)
+  chi2 = 54.56   p = 1.61e-10
+  ranking : ABC  <  ACO  <  PSO  <  GA  <  FA  <  GWO
+  ranks   : ABC=1.950  GWO=4.833  FA=4.300  PSO=2.967  GA=4.267  ACO=2.683
+  success : ABC=93%  GWO=80%  FA=67%  PSO=67%  GA=60%  ACO=90%
+  Spearman vs published +0.829   vs SPICE campaign +0.086
+  ABC scouts: 4.00/run   limit=168   generations=500   trial high-water=188
+
+=== budget sweep  D=7 SN=40 budget=80000   [this budget would cost 1664 CPU-h in SPICE, 416 h on 4 workers]   (519s)
+  chi2 = 54.70   p = 1.50e-10
+  ranking : ABC  <  ACO  <  PSO  <  GA  <  FA  <  GWO
+  ranks   : ABC=1.750  GWO=4.800  FA=4.333  PSO=3.183  GA=4.100  ACO=2.833
+  success : ABC=97%  GWO=80%  FA=67%  PSO=67%  GA=63%  ACO=90%
+  Spearman vs published +0.829   vs SPICE campaign +0.086
+  ABC scouts: 17.38/run   limit=168   generations=1000   trial high-water=208
+
+wrote E:\University\ABC\code\results_protocol_sweep\summary.csv
+wrote E:\University\ABC\code\results_protocol_sweep\per_run.csv
+
+==============================================================================
+VERDICT
+==============================================================================
+  surrogate at the SPICE protocol, averaged over 8 cells:
+    Spearman vs the PUBLISHED ordering : +0.709
+    Spearman vs the SPICE   ordering   : +0.047
+
+  -> THE PROTOCOL IS EXONERATED. Run at the SPICE dimension, population
+     and budget, the surrogate still reproduces its own published ordering.
+     The SPICE ranking difference is therefore a property of the EVALUATOR
+     -- the real circuit's landscape -- and not of the reduced budget. The
+     existing SPICE campaign is a valid comparison and does not need to be
+     re-run at a different population.
+
+  ABC's scout phase fires ZERO times in 6 of the measured cells, including
+  SN=40 at 2,500 evaluations. `limit` grows with SN while the generation count shrinks,
+  so raising SN toward the published 40 makes the mechanism LESS active. Disclose the
+  measured scout count rather than implying the published configuration was reproduced.

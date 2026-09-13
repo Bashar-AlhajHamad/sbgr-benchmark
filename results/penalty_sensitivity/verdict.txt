@@ -1,0 +1,45 @@
+PENALTY-SCALING SENSITIVITY — ROBUSTNESS VERDICT
+==============================================================
+Per lambda: overall average rank and success rate across ALL case/run
+blocks (lower rank is better). ABC is the proposed method.
+
+lambda = 10
+    ABC    avg_rank=2.067  success= 82.2%  <-- ABC
+    GA     avg_rank=2.856  success= 55.6%
+    PSO    avg_rank=2.978  success= 56.7%
+    ACO    avg_rank=3.483  success= 33.3%
+    FA     avg_rank=4.628  success= 33.3%
+    GWO    avg_rank=4.989  success= 21.1%
+    => ABC best by rank: True | ABC best by success: True | conclusion holds: True
+
+lambda = 100
+    ABC    avg_rank=2.011  success= 82.2%  <-- ABC
+    GA     avg_rank=2.800  success= 57.8%
+    PSO    avg_rank=3.000  success= 56.7%
+    ACO    avg_rank=3.461  success= 32.2%
+    FA     avg_rank=4.822  success= 30.0%
+    GWO    avg_rank=4.906  success= 21.1%
+    => ABC best by rank: True | ABC best by success: True | conclusion holds: True
+
+lambda = 1000
+    ABC    avg_rank=2.000  success= 83.3%  <-- ABC
+    GA     avg_rank=2.811  success= 55.6%
+    PSO    avg_rank=2.989  success= 56.7%
+    ACO    avg_rank=3.461  success= 32.2%
+    FA     avg_rank=4.844  success= 30.0%
+    GWO    avg_rank=4.894  success= 21.1%
+    => ABC best by rank: True | ABC best by success: True | conclusion holds: True
+
+lambda = 10000
+    ABC    avg_rank=2.056  success= 82.2%  <-- ABC
+    GA     avg_rank=2.778  success= 56.7%
+    PSO    avg_rank=2.967  success= 56.7%
+    ACO    avg_rank=3.467  success= 32.2%
+    FA     avg_rank=4.850  success= 28.9%
+    GWO    avg_rank=4.883  success= 21.1%
+    => ABC best by rank: True | ABC best by success: True | conclusion holds: True
+
+--------------------------------------------------------------
+HEADLINE: ABC is the top-ranked method at EVERY tested lambda: True
+(If True, the ABC advantage is robust to the penalty scaling and is not
+ an artifact of the specific value lambda = 1000.)

@@ -1,0 +1,7 @@
+algo,n_designs,nominal_feasible,nominal_rate,n_sims,sim_failures,sim_failure_rate,pvt_robust,pvt_robust_rate,mean_cond_passed_scored,mean_cond_passed_usable,n_usable,cond_feasible_rate_usable,median_worst_objective,worst_case_worst_objective
+ABC,30,30,1.0,450,429,0.953333,0,0.0,0.1667,3.5714,21,0.238095,-200.0,-200.0
+GWO,30,30,1.0,450,11,0.024444,0,0.0,2.0,2.0501,439,0.136674,26.5015,-200.0
+FA,30,30,1.0,450,15,0.033333,0,0.0,2.0333,2.1034,435,0.14023,18.284,-200.0
+PSO,30,30,1.0,450,0,0.0,0,0.0,1.5667,1.5667,450,0.104444,27.4926,21.307
+GA,30,30,1.0,450,7,0.015556,0,0.0,2.1333,2.167,443,0.14447,28.4273,-200.0
+ACO,30,30,1.0,450,243,0.54,0,0.0,0.6333,1.3768,207,0.091787,-200.0,-200.0

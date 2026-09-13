@@ -1,0 +1,23 @@
+evaluator up; 512 points, seed 20260901, dim 7
+provisional nominal point through the evaluator:
+    FAILS: no_convergence -- expected; see the module docstring
+
+    32/512     20.2s   0.63s/point   failures 23
+    64/512     39.9s   0.62s/point   failures 39
+    96/512     59.6s   0.62s/point   failures 57
+   128/512     79.6s   0.62s/point   failures 76
+   160/512     99.7s   0.62s/point   failures 95
+   192/512    121.7s   0.63s/point   failures 118
+   224/512    141.3s   0.63s/point   failures 133
+   256/512    160.9s   0.63s/point   failures 152
+   288/512    181.0s   0.63s/point   failures 174
+   320/512    199.6s   0.62s/point   failures 193
+   352/512    219.7s   0.62s/point   failures 214
+   384/512    240.0s   0.62s/point   failures 233
+   416/512    259.7s   0.62s/point   failures 249
+   448/512    279.4s   0.62s/point   failures 269
+   480/512    298.9s   0.62s/point   failures 287
+   512/512    318.4s   0.62s/point   failures 304
+
+wrote lhs_probe.csv  (512 rows, 304 simulation failures)
+evals=513  ok=208  no_convergence=305
