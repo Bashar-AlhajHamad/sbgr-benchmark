@@ -1,0 +1,43 @@
+{
+  "title": "SBGR: A Surrogate Bandgap-Reference Benchmark for Constrained Metaheuristic Optimization, with a Transistor-Level SKY130 Cross-Check",
+  "description": "<p>Benchmark, optimizers, experiment scripts and campaign data for the study <em>Artificial Bee Colony for Constrained Optimization in 6G-Motivated Analog Integrated Circuit Design via Surrogate Evaluation</em> (under review, <em>Applied Soft Computing</em>).</p><p><strong>SBGR</strong> is a deterministic closed-form benchmark that reproduces the optimization structure of bandgap-reference transistor sizing &mdash; maximise power-supply rejection subject to six coupled specifications &mdash; for fair, reproducible, simulator-independent comparison of constrained metaheuristics.</p><p>This release adds the <strong>transistor-level cross-check</strong>: the identical optimization problem re-posed against bandgap references in the open-source SkyWater SKY130 process and evaluated with ngspice, over five campaigns and 900 independent runs. Two campaigns use the <strong>current-mode (Banba) core of the motivating reference design</strong>, which makes five of its six published specifications applicable verbatim; three use a voltage-mode (Kuijk) core. The measured finding is that an optimizer ranking on this problem is contingent on the specification set, on the core topology and on the evaluator. ABC attains the best average rank and separates from all five baselines under the published specification set; recalibrating the thresholds alone, on the same netlist, the same design box and the same thirty seeds, reverses the ordering and removes the separation; and on the voltage-mode cases the ranking measured on the surrogate does not predict the ranking measured on the circuit. What transfers is reliability rather than peak objective value: ABC reaches a feasible design in every run of every case. Separately, of the 540 designs put through a fifteen-condition process-and-supply sweep (8,100 re-simulations) none survives it, and neither does the published reference design.</p><p>The README documents the exact PDK build and model library with its MD5 checksum, and states eight known issues in the released data, including one shipped summary file that should not be used.</p>",
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Alhaj Hamad, Bashar Aqel Younis"
+    },
+    {
+      "name": "Yıldız, Doğan"
+    },
+    {
+      "name": "Şahin, Durmuş Özkan"
+    },
+    {
+      "name": "Demirci, Sercan"
+    },
+    {
+      "name": "Aslan, Selçuk"
+    }
+  ],
+  "keywords": [
+    "artificial bee colony",
+    "constrained optimization",
+    "metaheuristics",
+    "benchmark",
+    "analog integrated circuit sizing",
+    "bandgap reference",
+    "power-supply rejection ratio",
+    "SKY130",
+    "ngspice",
+    "reproducibility"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/Bashar-AlhajHamad/sbgr-benchmark",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.stackdump
+# the PDK is fetched by truba/00_setup_native.sh at a pinned commit, not vendored
+spice/pdk/
+# synthetic fault-injection decks, used only to test the bridge
+spice/failures/

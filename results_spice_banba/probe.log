@@ -1,0 +1,30 @@
+evaluator up; 512 points, seed 20260831, dim 7
+provisional nominal point through the evaluator:
+    PSRR_DB                 20.2696
+    VREF                     0.8005
+    TC                      18.3608
+    LOOP_GAIN_DB            58.9063
+    PHASE_MARGIN_DEG        38.3980
+    GAIN_MARGIN_DB          12.1922
+    POWER_UW                55.9037
+    PSRR_100HZ_DB           50.8118
+
+    32/512     14.4s   0.45s/point   failures 0
+    64/512     28.7s   0.45s/point   failures 2
+    96/512     42.5s   0.44s/point   failures 2
+   128/512     57.0s   0.45s/point   failures 2
+   160/512     71.7s   0.45s/point   failures 2
+   192/512     85.6s   0.45s/point   failures 2
+   224/512     99.1s   0.44s/point   failures 2
+   256/512    114.1s   0.45s/point   failures 2
+   288/512    128.3s   0.45s/point   failures 3
+   320/512    143.1s   0.45s/point   failures 3
+   352/512    156.5s   0.44s/point   failures 3
+   384/512    169.6s   0.44s/point   failures 3
+   416/512    183.2s   0.44s/point   failures 3
+   448/512    196.2s   0.44s/point   failures 3
+   480/512    209.4s   0.44s/point   failures 4
+   512/512    223.0s   0.44s/point   failures 4
+
+wrote lhs_probe.csv  (512 rows, 4 simulation failures)
+evals=513  ok=509  measure_failed=4

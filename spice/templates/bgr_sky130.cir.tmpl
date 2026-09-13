@@ -1,0 +1,111 @@
+* SKY130 bandgap reference -- Kuijk core + folded-cascode error amplifier.
+*
+* Topology: the textbook Kuijk reference (Kuijk 1973) with a folded-cascode error amplifier.
+* This deck, its parameterisation and its testbenches are our own; no netlist text is copied
+* from anywhere. The three fixed core constants follow from the topology and the target:
+* N=8 is the standard emitter ratio; R1/R3 = 9.065 is then set by the reference design's
+* published 1220 mV, because the PTAT term must supply 487.6 mV at 27 C; and 97k/10.7k fixes
+* the branch current. Verified by the measured VREF below: 1219.90 mV against 1220 mV.
+*
+* VREF = V_EB1 + (R1/R3) * V_T * ln(N).  Measured at the nominal point below:
+*   VREF 1219.90 mV, TC 24.5 ppm/degC, power 47.3 uW, PSRR 56.3 dB @ 100 Hz
+* which reproduces that design's published 1220 mV / 24 ppm/degC / 47 uW.
+*
+* The tail current, the fold sink currents and the NMOS cascode bias are IDEAL sources.
+* That is the reference design's own modelling choice and it is retained deliberately: it
+* isolates the amplifier sizing -- which is what this study optimises, following Hoang et
+* al.'s formulation -- from the separate problem of designing a current reference. Replacing
+* them with a VDD-referenced transistor chain was measured and made TC ~100x worse
+* (2628 ppm/degC) and PSRR 47 dB worse; referencing that chain to VREF instead does not
+* start up. See the limitations subsection.
+*
+* Rendered by spice_problem.py: the dollar-brace placeholders below are substituted once,
+* then NgspiceServer drives the deck with alterparam/reset, so the PDK is parsed only once.
+*
+* NOTE for anyone editing the analysis commands:
+*   - `meas ac ... FIND v(x)` yields the REAL PART of a complex AC vector. Always build a
+*     real magnitude vector first:  let vm = mag(v(x)).
+*   - `vdb()` cannot be used inside meas in ngspice-46; it aborts the whole AC analysis.
+*   - `.meas op` is rejected ("unrecognized analysis type"); operating-point values come
+*     from the temperature sweep at 27 C, or from `op` + `print` in a control block.
+*   - `let` vectors are plot-scoped: keep arithmetic inside the plot that produced its inputs.
+*   - run `ac` BEFORE `dc temp`, which leaves the simulator at 125 C.
+
+.title SKY130 Kuijk bandgap -- folded-cascode error amplifier
+* ${CORNER} is 'tt' for every OPTIMIZATION run -- that is the published problem's single-corner
+* nominal setting, and spice_problem.py asserts it. The placeholder exists so the PVT
+* verification pass can re-simulate the SAME deck at ss/ff/sf/fs without a second copy of the
+* netlist, because two copies of the circuit would eventually drift apart and the circuit is the
+* scientific artefact here. Likewise ${VDD_DC}: 1.8 V nominal, 1.62/1.98 for the +/-10 % sweep.
+.lib ${SKY130_LIB} ${CORNER}
+
+* ===== the seven design variables (amplifier only; the core stays at its trim point) =====
+.param w_pdiff=${W_PDIFF}      $ input pair XM1/XM2 width, um
+.param w_ncasc=${W_NCASC}      $ NMOS cascode XM5/XM6 width, um
+.param w_pmir=${W_PMIR}        $ top PMOS mirror XM7/XM8 width, um
+.param w_pass=${W_PASS}        $ PMOS pass device width, um
+.param l_all=${L_ALL}          $ common channel length, um
+.param iss=${ISS}              $ tail current, uA
+.param vbnv=${VBNV}            $ NMOS cascode bias, V
+
+* ===== fixed bandgap core, at the reference trim point =====
+.param N=8 R1=97k R3=10.7k
+* fold sinks must exceed iss/2 or the fold starves; tie them structurally so that
+* a starved fold -- the dominant non-convergence mode -- cannot be proposed at all.
+.param ib='0.8*iss'
+
+* AC 1 V on the rail makes |v(vref)| the supply-to-output transfer directly.
+Vdd vdd 0 DC ${VDD_DC} AC 1
+
+* ---- bandgap core (Kuijk) ----
+Rr1 vref nA {R1}
+XQ1 0 0 nA sky130_fd_pr__pnp_05v5_W3p40L3p40
+Rr2 vref nB {R1}
+Rr3 nB nC {R3}
+XQ2 0 0 nC sky130_fd_pr__pnp_05v5_W3p40L3p40 m={N}
+
+* ---- folded-cascode error amplifier, PMOS input pair ----
+Iss  vdd tail dc 'iss*1u'
+XM1  fA nB tail vdd sky130_fd_pr__pfet_01v8 W={w_pdiff} L={l_all}
+XM2  fB nA tail vdd sky130_fd_pr__pfet_01v8 W={w_pdiff} L={l_all}
+Ib1  fA 0 dc 'ib*1u'
+Ib2  fB 0 dc 'ib*1u'
+Vbn  vbn 0 dc {vbnv}
+XM5  nol  vbn fA 0 sky130_fd_pr__nfet_01v8 W={w_ncasc} L={l_all}
+XM6  nout vbn fB 0 sky130_fd_pr__nfet_01v8 W={w_ncasc} L={l_all}
+XM7  nol  nol vdd vdd sky130_fd_pr__pfet_01v8 W={w_pmir} L={l_all}
+XM8  nout nol vdd vdd sky130_fd_pr__pfet_01v8 W={w_pmir} L={l_all}
+
+* ---- pass device: nout regulates vref so that nA = nB ----
+* Both pins are renamed so the two Tian probes below sit in the loop: the gate is nout_b
+* (probe 1, production) and the drain is vref_d (probe 2, independent audit).
+XMpass vref_d nout_b vdd vdd sky130_fd_pr__pfet_01v8 W={w_pass} L={l_all}
+
+* ---- start-up leak (stays on the driver side of the probe) ----
+Rstart nout 0 80meg
+
+* ===== Tian loop-gain probe: node A = nout (amp output), node B = nout_b (pass gate) =====
+* Vz with dc 0 is an ideal wire and Iz with dc 0 is an open circuit, so with both acmag=0
+* the loop stays closed and every other analysis is unperturbed -- verified: vref, nA, nB
+* and nout are identical to 7 digits with and without the probe.
+*
+* The pass gate is the ONLY single-wire chokepoint in this loop. Do NOT cut on the sense
+* side: it is differential (nA and nB both feed the input pair), so cutting one branch
+* leaves the loop closed through the other and yields a complete, plausible, WRONG answer
+* with no error message.
+*
+* The explicit "ac 0" is required, not cosmetic: it sets the ac-given flag so that
+* `alter @Vz[acmag]=1` later takes effect. And `reset` discards every alter, so the probe
+* must be re-armed after each reset.
+Vz nout nout_b dc 0 ac 0
+Iz 0    nout   dc 0 ac 0
+
+* ===== probe 2, INDEPENDENT AUDIT: cut at the pass-device drain instead of its gate =====
+* A = vref_d (driven by the pass device), B = vref (feeds the sense network). Also a
+* single-wire chokepoint: the pass drain connects to nothing but vref. Arming this probe
+* instead of probe 1 measures the same loop cut somewhere else, so agreement between the two
+* is real evidence rather than a self-consistency check. Both are wires in DC.
+Vz2 vref_d vref   dc 0 ac 0
+Iz2 0      vref_d dc 0 ac 0
+
+.end

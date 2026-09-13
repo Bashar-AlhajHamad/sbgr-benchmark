@@ -1,0 +1,9 @@
+* SBGR ngspice bridge -- Phase 1 placeholder (resistive divider)
+* Rendered by ngspice_bridge.py; ${RTOP}/${RBOT} are substituted with numbers.
+* Expected: v(out) = RBOT / (RTOP + RBOT) for a 1 V source.
+Vin in 0 DC 1
+R1 in out ${RTOP}
+R2 out 0 ${RBOT}
+.dc Vin 0 1 0.5
+.meas dc vout FIND v(out) AT=1
+.end
