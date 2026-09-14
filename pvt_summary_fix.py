@@ -43,6 +43,9 @@ if not R.is_dir():
                      f"base_150k/, hard_150k/ and highdim_220k/")
 ALG = ["ABC", "GWO", "FA", "PSO", "GA", "ACO"]
 CAMP = ["base_150k", "hard_150k", "highdim_220k"]
+# Five process corners x three supplies. Kept as a name so that changing the harness grid
+# cannot leave this summary silently reporting robustness against the wrong denominator.
+N_COND = 15
 
 COLS = ["algo", "n_designs", "nominal_feasible", "nominal_rate",
         "n_sims", "sim_failures", "sim_failure_rate",
@@ -73,10 +76,10 @@ def build(out: str) -> pd.DataFrame:
             "n_sims": int(len(s)),
             "sim_failures": int(s.failed.sum()),
             "sim_failure_rate": round(float(s.failed.mean()), 6),
-            "pvt_robust": int((npass == 15).sum()),
-            "pvt_robust_rate": round(float((npass == 15).mean()), 6),
+            "pvt_robust": int((npass == N_COND).sum()),
+            "pvt_robust_rate": round(float((npass == N_COND).mean()), 6),
             "mean_cond_passed_scored": round(float(npass.mean()), 4),
-            "mean_cond_passed_usable": (round(float(15 * ok.feasible.mean()), 4) if okn else np.nan),
+            "mean_cond_passed_usable": (round(float(N_COND * ok.feasible.mean()), 4) if okn else np.nan),
             "n_usable": okn,
             "cond_feasible_rate_usable": (round(float(ok.feasible.mean()), 6) if okn else np.nan),
             "median_worst_objective": round(float(worst.median()), 4),

@@ -5,3 +5,8 @@ __pycache__/
 spice/pdk/
 # synthetic fault-injection decks, used only to test the bridge
 spice/failures/
+
+# Pre-correction copies kept while a fix is being validated. They are working files, not part of
+# any release: the corrected file and its documentation are what ship.
+*.bak
+*.csv.bak

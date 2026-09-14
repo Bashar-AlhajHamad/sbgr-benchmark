@@ -375,7 +375,12 @@ def main() -> int:
             seen = sorted(set(df[col].dropna().tolist()))
             if len(seen) != 1 or str(seen[0]) != str(want):
                 problems.append(f"{col} is {seen}, expected [{want}]")
-        if "psrr_def" in df.columns and len(set(df.psrr_def.dropna())) > 1:
+        # A MISSING MARKER IS NOT A PASS. Rows written before psrr_def existed carry no
+        # objective definition at all, and merging them with current rows silently mixes
+        # two objectives, which is the one thing this guard exists to prevent.
+        if "psrr_def" not in df.columns:
+            problems.append("no psrr_def column: cannot confirm one objective definition")
+        elif len(set(df.psrr_def.dropna())) > 1:
             problems.append(f"rows mix objective definitions: {set(df.psrr_def)}")
 
         # POISONED-SESSION DETECTOR. A row can look perfectly complete and be worthless. Observed

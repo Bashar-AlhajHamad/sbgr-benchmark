@@ -300,7 +300,7 @@ def main() -> int:
     ck("F", "walltime covers 150,000 evaluations at 1.5 s each",
        hrs * 3600 >= 150000 * 1.5, f"{hrs} h requested")
     ck("F", "barbun's 20-core minimum is respected",
-       "--cpus-per-task=112" in sl or True)
+       "--cpus-per-task=112" in sl)
     for chunks, total in ((9, 180),):
         per = (total + chunks - 1) // chunks
         cov = set()

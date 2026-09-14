@@ -718,7 +718,12 @@ class SpiceBGRProblem:
                                      "meas dc mx MAX v(vref)",
                                      "meas dc mn MIN v(vref)",
                                      "let vref_v = m27",
-                                     "let power_uw = -1.8e6*i27",
+                                     # THE SUPPLY IS A PARAMETER, SO THE POWER MUST BE TOO.
+                                     # This line read -1.8e6*i27 and so reported power at the
+                                     # nominal supply even when the deck was built at 1.62 or
+                                     # 1.98 V, understating it by 9.1 % at the high corner and
+                                     # overstating it by 11.1 % at the low one.
+                                     f"let power_uw = {-1e6 * self.vdd:.10g}*i27",
                                      "let tc_ppm = 1e6*(mx-mn)/(m27*165)",
                                      "print vref_v", "print power_uw", "print tc_ppm"])
         if out is None:

@@ -1,5 +1,9 @@
-numpy
-pandas
-matplotlib
-scipy
-Jinja2
+# Pinned to the versions the published campaigns ran under, with the minimum each API needs.
+# run.py uses np.trapezoid, added in NumPy 2.0, and Axes.set_xticks(..., tick_labels=...), added in
+# matplotlib 3.9. An older environment raises inside a worker, and run_spice.py scores that as a
+# failed row rather than stopping -- so an unpinned install fails quietly.
+numpy>=2.0
+pandas>=2.0
+matplotlib>=3.9
+scipy>=1.10
+Jinja2>=3.0

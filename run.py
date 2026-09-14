@@ -305,17 +305,30 @@ def build_case_wilcoxon(df_case: pd.DataFrame, algo_names: List[str], base_algo:
     if base_algo not in algo_names:
         return pd.DataFrame(columns=["comparison", "p_value", "n_pairs"])
 
-    base = df_case[df_case["algo"] == base_algo].sort_values("run")["best_fitness"].values
+    # PAIR ON `run`, NOT ON POSITION. Sorting each method's runs and truncating to the shorter list
+    # is the identity for a complete campaign, but on a resumed or partially merged one it compares
+    # this method's run i against the other's run j. The pivot pairs by run index instead.
+    piv = df_case.pivot(index="run", columns="algo", values="best_fitness")
+    piv = piv.reindex(columns=[a for a in algo_names if a in piv.columns]).dropna()
+    if base_algo not in piv.columns or piv.empty:
+        return pd.DataFrame(columns=["comparison", "p_value", "n_pairs"])
+    # Mean within-run rank, used only to say which side a difference favours.
+    mean_rank = piv.rank(axis=1, method="average").mean()
+    base = piv[base_algo].values
     for algo in algo_names:
-        if algo == base_algo:
+        if algo == base_algo or algo not in piv.columns:
             continue
-        other = df_case[df_case["algo"] == algo].sort_values("run")["best_fitness"].values
-        n_pairs = int(min(len(base), len(other)))
-        p = wilcoxon_signed_rank(base[:n_pairs], other[:n_pairs]) if n_pairs > 0 else float("nan")
+        other = piv[algo].values
+        n_pairs = int(len(base))
+        p = wilcoxon_signed_rank(base, other) if n_pairs > 0 else float("nan")
         rows.append({
             "comparison": f"{base_algo} vs {algo}",
             "p_value": p,
             "n_pairs": n_pairs,
+            # WHICH SIDE THE DIFFERENCE FAVOURS. Without this the table reads backwards: the family
+            # is centred on ABC whatever the outcome, so "ABC vs GWO, reject = 1" looks like a win
+            # for ABC even on the cases where GWO is first and ABC is third or fifth.
+            "favours": base_algo if mean_rank[base_algo] < mean_rank[algo] else algo,
         })
 
     out = pd.DataFrame(rows)
