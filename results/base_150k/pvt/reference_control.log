@@ -1,0 +1,53 @@
+srun: job 6366392 queued and waiting for resources
+srun: job 6366392 has been allocated resources
+7 designs x 15 conditions (5 corners x 3 supplies)
+pre-declared rule (2026-08-06): feasible at tt/1.8 V and infeasible at ANY of the 15 conditions counts as INFEASIBLE
+
+  tt @ 1.62 V  REFERENCE(published)=no ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  tt @ 1.80 V  REFERENCE(published)=OK ABC=OK ACO=OK FA=OK GA=OK GWO=OK PSO=OK 
+  tt @ 1.98 V  REFERENCE(published)=OK ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  ss @ 1.62 V  REFERENCE(published)=no ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  ss @ 1.80 V  REFERENCE(published)=OK ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  ss @ 1.98 V  REFERENCE(published)=OK ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  ff @ 1.62 V  REFERENCE(published)=no ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  ff @ 1.80 V  REFERENCE(published)=OK ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  ff @ 1.98 V  REFERENCE(published)=OK ABC=OK ACO=OK FA=no GA=no GWO=OK PSO=OK 
+  sf @ 1.62 V  REFERENCE(published)=no ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  sf @ 1.80 V  REFERENCE(published)=no ABC=OK ACO=OK FA=OK GA=OK GWO=OK PSO=OK 
+  sf @ 1.98 V  REFERENCE(published)=no ABC=OK ACO=OK FA=OK GA=OK GWO=OK PSO=OK 
+  fs @ 1.62 V  REFERENCE(published)=no ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  fs @ 1.80 V  REFERENCE(published)=OK ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+  fs @ 1.98 V  REFERENCE(published)=OK ABC=no ACO=no FA=no GA=no GWO=no PSO=no 
+
+design                    conditions passed   worst objective dB
+  REFERENCE(published)              8/15               17.841
+  ABC/best/run4                     4/15               28.219
+  ACO/best/run7                     4/15               29.127
+  FA/best/run27                     3/15               49.067
+  GA/best/run6                      3/15               27.530
+  GWO/best/run12                    4/15               29.466
+  PSO/best/run16                    4/15               28.955
+
+which specification fails, per design:
+  REFERENCE(published):
+    tt@1.62:tc+loop_gain  ss@1.62:tc+loop_gain  ff@1.62:tc+loop_gain  sf@1.62:vref+loop_gain  sf@1.80:vref  sf@1.98:vref  fs@1.62:tc
+  ABC/best/run4:
+    tt@1.62:vref+loop_gain  tt@1.98:vref  ss@1.62:vref+loop_gain  ss@1.80:vref  ss@1.98:vref  ff@1.62:vref+loop_gain  ff@1.80:loop_gain  sf@1.62:vref+tc+loop_gain  fs@1.62:vref+loop_gain  fs@1.80:vref+loop_gain  fs@1.98:vref+loop_gain
+  ACO/best/run7:
+    tt@1.62:vref+loop_gain  tt@1.98:vref  ss@1.62:vref+loop_gain  ss@1.80:vref  ss@1.98:vref  ff@1.62:vref+loop_gain  ff@1.80:loop_gain  sf@1.62:loop_gain  fs@1.62:vref+loop_gain  fs@1.80:vref+loop_gain  fs@1.98:vref+loop_gain
+  FA/best/run27:
+    tt@1.62:loop_gain  tt@1.98:vref  ss@1.62:vref  ss@1.80:vref  ss@1.98:vref  ff@1.62:loop_gain  ff@1.80:loop_gain  ff@1.98:loop_gain  sf@1.62:loop_gain  fs@1.62:vref+loop_gain  fs@1.80:vref+loop_gain  fs@1.98:vref+loop_gain
+  GA/best/run6:
+    tt@1.62:loop_gain  tt@1.98:vref  ss@1.62:vref+loop_gain  ss@1.80:vref  ss@1.98:vref  ff@1.62:loop_gain  ff@1.80:loop_gain  ff@1.98:loop_gain  sf@1.62:loop_gain  fs@1.62:vref+loop_gain  fs@1.80:vref+loop_gain  fs@1.98:vref+loop_gain
+  GWO/best/run12:
+    tt@1.62:vref+loop_gain  tt@1.98:vref  ss@1.62:vref+loop_gain  ss@1.80:vref  ss@1.98:vref  ff@1.62:vref+loop_gain  ff@1.80:loop_gain  sf@1.62:loop_gain  fs@1.62:vref+loop_gain  fs@1.80:vref+loop_gain  fs@1.98:vref+loop_gain
+  PSO/best/run16:
+    tt@1.62:vref+loop_gain  tt@1.98:vref  ss@1.62:vref+loop_gain  ss@1.80:vref+loop_gain  ss@1.98:vref  ff@1.62:loop_gain  ff@1.80:loop_gain  sf@1.62:loop_gain  fs@1.62:vref+loop_gain  fs@1.80:vref+loop_gain  fs@1.98:vref+loop_gain
+
+==============================================================================
+The published design also fails (8/15 conditions passed). The
+campaign's 0/180 is therefore inherited from the PROBLEM STATEMENT: optimizing at
+a single corner cannot produce corner-robust designs on this circuit, and no
+optimizer in the comparison was asked to. Section 6 must state this before
+reporting any per-algorithm robustness number.
+==============================================================================
