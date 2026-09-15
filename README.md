@@ -2,7 +2,7 @@
 
 This repository contains the benchmark, optimizers, and experiment scripts for the study:
 
-> **Artificial Bee Colony for Constrained Optimization in 6G-Motivated Analog Integrated Circuit Design via Surrogate Evaluation**
+> **Artificial Bee Colony for Constrained Optimization in 6G-Motivated Analog Integrated Circuit Design: A Surrogate Benchmark and a SKY130 Cross-Check**
 > (under review, *Applied Soft Computing*).
 
 It reproduces all experiments in the paper: the main algorithm comparison and the penalty-scaling sensitivity analysis.
@@ -52,7 +52,7 @@ where `penalty(x)` counts violated specifications (a solution is feasible when `
 | `spice/ngspice_bridge.py` | Persistent ngspice server (`alterparam`/`reset`), so the PDK is parsed once per worker. |
 | `spice/templates/`        | The SKY130 bandgap decks: the voltage-mode Kuijk core (`bgr_sky130.cir.tmpl`) and its higher-dimensional variant, and the current-mode Banba core (`bgr_banba_sky130.cir.tmpl`) used for the two reference-topology cases. `bgr_brokaw_sky130.cir.tmpl` is a third core included for completeness only — no reported result depends on it. |
 | `truba/`                  | Cluster scripts: ngspice built from source, PDK fetched at a pinned commit, SLURM job arrays. |
-| `pvt_reference_control.py`| Runs the untouched published reference design through all fifteen process/supply conditions. |
+| `pvt_reference_control.py`| Runs the untouched SKY130 voltage-mode reference design through all fifteen process/supply conditions. It prints to stdout; the captured run released here is `results/base_150k/pvt/reference_control_k1.log` (8 of 15 passed), with `reference_control.log` the same run under the pre-K1 power formula. Submit with `truba/05_reference_control.slurm`. |
 | `pvt_summary_fix.py`      | Writes a corrected PVT summary beside the shipped one — see *Known issues*.  |
 | `wilcoxon_exact.py`       | Regenerates the exact signed-rank tables from the shipped per-run records and checks them against the p-values printed in Section 6. `--check` diffs without writing. |
 | `results_spice_banba/`    | Calibration record of the two current-mode cases: the 512-point design-box probe, the anchor selection, and the threshold derivation with its four acceptance gates. |
@@ -216,7 +216,7 @@ If you use this benchmark or code, please cite the paper (details to be updated 
 ```bibtex
 @article{sbgr2026,
   title   = {Artificial Bee Colony for Constrained Optimization in 6G-Motivated
-             Analog Integrated Circuit Design via Surrogate Evaluation},
+             Analog Integrated Circuit Design: A Surrogate Benchmark and a SKY130 Cross-Check},
   author  = {Alhaj Hamad, Bashar Aqel Younis and Y{\i}ld{\i}z, Do{\u{g}}an and
              {\c{S}}ahin, Durmu{\c{s}} {\"O}zkan and Demirci, Sercan and Aslan, Sel{\c{c}}uk},
   journal = {Applied Soft Computing},
