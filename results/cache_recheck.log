@@ -1,0 +1,27 @@
+srun: job 6412090 queued and waiting for resources
+srun: job 6412090 has been allocated resources
+
+=== banba  (2 runs, cache disabled) ===
+  PSO/run9   recorded is_feasible=0  re-measured=0  violations=vref+tc
+  PSO/run28  recorded is_feasible=0  re-measured=0  violations=tc
+
+=== banba_cal  (8 runs, cache disabled) ===
+  ACO/run2   recorded is_feasible=0  re-measured=0  violations=tc
+  ACO/run5   recorded is_feasible=0  re-measured=0  violations=tc
+  ACO/run9   recorded is_feasible=0  re-measured=0  violations=tc
+  ACO/run15  recorded is_feasible=0  re-measured=0  violations=tc
+  ACO/run29  recorded is_feasible=0  re-measured=0  violations=tc
+  PSO/run11  recorded is_feasible=0  re-measured=0  violations=loop_gain
+  PSO/run13  recorded is_feasible=0  re-measured=0  violations=tc
+  PSO/run27  recorded is_feasible=0  re-measured=0  violations=tc
+
+==============================================================================
+  10 runs re-measured without the cache
+  agree with the recorded feasibility flag : 10/10
+  disagree                                 : 0/10
+
+  Every final vector reproduces its recorded feasibility. The cache collision
+  affected intermediate scoring only; no reported success rate changes.
+
+  written: results/cache_recheck.csv
+==============================================================================

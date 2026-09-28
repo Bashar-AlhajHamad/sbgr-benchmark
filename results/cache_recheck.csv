@@ -1,0 +1,11 @@
+case,algo,run,recorded_is_feasible,recorded_best_feasible_found,recorded_best_fitness,remeasured_is_feasible,remeasured_PSRR_DB,remeasured_violations,agrees_with_record
+banba,PSO,9,0,1,-12.10374,0,12.10374,vref+tc,1
+banba,PSO,28,0,1,-26.85069,0,26.85057,tc,1
+banba_cal,ACO,2,0,1,-21.3345,0,21.3345,tc,1
+banba_cal,ACO,5,0,1,-21.33874,0,21.33874,tc,1
+banba_cal,ACO,9,0,1,-21.33989,0,21.33989,tc,1
+banba_cal,ACO,15,0,1,-21.33896,0,21.33896,tc,1
+banba_cal,ACO,29,0,1,-21.33795,0,21.33795,tc,1
+banba_cal,PSO,11,0,1,-21.29254,0,21.29285,loop_gain,1
+banba_cal,PSO,13,0,1,-21.32446,0,21.32446,tc,1
+banba_cal,PSO,27,0,1,-21.35125,0,21.35125,tc,1
