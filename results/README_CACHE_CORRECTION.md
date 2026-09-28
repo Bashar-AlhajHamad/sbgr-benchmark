@@ -62,11 +62,30 @@ Nothing that carries a conclusion. Recomputed over the two campaigns:
 * **changed**: the two SKY130-CM-Cal median-fitness figures in the third decimal, because the
   affected runs move from below the median to the top of the ordering; three mean-fitness figures (PSO on CM-Pub, PSO and ACO on CM-Cal, each moving from a
   negative mean to a positive one once the true penalty is included), six average ranks by at most
-  0.167, the Friedman statistic on both cases, and two signed-rank p-values on CM-Cal
-  (GWO-PSO and GWO-ACO), neither of which crosses any threshold.
+  0.167, the Friedman statistic on both cases, and ten pairwise exact signed-rank
+  p-values — three on CM-Pub and seven on CM-Cal. None of the ten is quoted in the paper and
+  none is in the released signed-rank tables, which hold only the ABC-versus-each comparisons;
+  every one of those is unchanged to full precision. One of the ten does cross a threshold: FA
+  against PSO on CM-Pub, `0.0106` to `0.0667`.
 
 No ordering reverses on either case. The aggregate table is untouched: it pools the three SBGR cases
 with the three **voltage-mode** SKY130 cases, and no voltage-mode run is affected.
+
+## What still ships uncorrected
+
+The two current-mode campaign directories each carry four per-case summary files —
+`average_ranks.csv`, `rank_summary.csv`, `core_stats.csv` and `friedman.csv` — written by
+`run_spice.py` when the campaign ran. **They are not regenerated here.** They therefore carry the
+pre-correction values and disagree with the paper: `average_ranks.csv` gives PSO `3.8667` and FA
+`4.9667` on CM-Pub where the paper gives `3.900` and `4.933`, and `friedman.csv` gives `56.190`
+where the paper gives `55.58`.
+
+They ship uncorrected for the same reason `best_fitness` does: this release adds corrections beside
+the recorded values and never over them, and a regenerated summary would be the one file mixing the
+two conventions. Anything computed from them should be recomputed from `per_run_records.csv`, with
+`best_fitness_remeasured` substituted wherever `cache_collision` is 1 — which reproduces the
+paper's ranks, means, medians and Friedman statistics. `wilcoxon_holm_exact.csv` needs no such care:
+it holds only the ABC-versus-each comparisons, and none of them moves.
 
 ## A limitation this does not remove
 
