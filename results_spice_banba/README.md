@@ -27,7 +27,7 @@ unreachable, and the 20 dB gain-margin floor excludes the Kuijk reference design
 
 The analytic estimate for zero first-order TC gave `r_ptat/r_ctat = 0.105`, i.e. `r_ptat = 26.2 k`.
 Simulated, that is CTAT-heavy and gives TC = 78 ppm/degC. Sweeping locates the turning point at
-**24.8 k** (18.5 ppm). The estimate was 5.6 % high because it assumed `dV_EB/dT = -1.7 mV/K`, a
+**24.8 k** (18.36 ppm/degC). The estimate was 5.6 % high because it assumed `dV_EB/dT = -1.7 mV/K`, a
 textbook figure rather than this PNP at this current density. `r_ref = 159.90 k` then places V_REF at
 **800.47 mV**, inside the published window.
 
