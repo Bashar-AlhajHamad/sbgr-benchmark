@@ -2,6 +2,8 @@
 #SBATCH -A YOUR_ACCOUNT
 #SBATCH -J bgr_camp
 #SBATCH -p orfoz
+# Default partition orfoz (used for the two current-mode cases). runcase.sh overrides it with
+# -p barbun, which is how the three voltage-mode cases ran; see truba/README.md.
 #SBATCH --array=0-1
 #SBATCH -N 1
 #SBATCH --ntasks=1

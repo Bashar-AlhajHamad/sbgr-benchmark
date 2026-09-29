@@ -91,7 +91,7 @@ and `--job-index` skips a job whose row file exists, so a 150,000-evaluation run
 `WORKERS=5`, not 15: the evaluator is memory-bandwidth-bound, and 0.151 s/eval at 5 workers per node
 becomes 1.1–1.6 s/eval at 15.
 
-540 tasks = the published campaign's 540 runs, ~17,460 core-hours ≈ 4.8 `barbun` nodes.
+540 tasks = the published voltage-mode campaign's 540 runs, 2,686 measured run-hours in total (777, 749 and 1,160 for `base`, `hard` and `highdim`; see the main README).
 
 **One partition per case.** The three voltage-mode cases ran on `barbun`; the two current-mode
 cases (`banba`, `banba_cal`) ran on `orfoz`. Spreading one case's tasks over two partitions would
@@ -168,6 +168,8 @@ and `pvt_retry.sh` are monitoring and requeue helpers for the recurring
   worker (ngspice 40 MB + cache 583 MB + interpreter ~120 MB), so ~3× headroom. The cache was cut
   from 200,000 to 20,000 entries after measuring 4,072 B/entry and a **0 %** hit rate — 583 MB of
   pure waste at a 150,000-evaluation budget.
+- **`barbun`**: 40 cores and 384 GB per node (Intel Xeon Gold 6148); the three voltage-mode
+  campaigns ran here.
 - **3-day walltime** is the binding constraint, not core count. That is what step 1's timing
   measurement exists to check.
 - **Objective**: worst-case PSRR over 10 Hz – 10 MHz, restated 2026-08-06. The previous
