@@ -72,7 +72,7 @@ taken and disclosed.
 **Then, before step 2:** paste the printed `PROBE_BEST_FEASIBLE_PSRR_DB` into
 `spice/spice_problem.py`, and set `--time` from the measured hours-per-task with margin.
 
-## 2. The campaign — `orfoz`, ~30–45 h wall clock
+## 2. The campaign — `barbun`, ~30–45 h wall clock
 
 Launch through `runcase.sh`, which splits the 180 `(algorithm, run)` tasks of a case into SLURM
 array chunks, skips tasks whose row file already exists, and refuses to double-submit:
@@ -91,11 +91,12 @@ and `--job-index` skips a job whose row file exists, so a 150,000-evaluation run
 `WORKERS=5`, not 15: the evaluator is memory-bandwidth-bound, and 0.151 s/eval at 5 workers per node
 becomes 1.1–1.6 s/eval at 15.
 
-540 tasks = the published campaign's 540 runs, ~17,460 core-hours ≈ 4.8 `orfoz` nodes.
+540 tasks = the published campaign's 540 runs, ~17,460 core-hours ≈ 4.8 `barbun` nodes.
 
-**One queue only.** Spreading tasks over `orfoz` and `hamsi` would put part of the difference
-between two algorithms inside the difference between two CPUs, and no statistic downstream could
-separate them.
+**One partition per case.** The three voltage-mode cases ran on `barbun`; the two current-mode
+cases (`banba`, `banba_cal`) ran on `orfoz`. Spreading one case's tasks over two partitions would
+put part of the difference between two algorithms inside the difference between two CPUs, and no
+statistic downstream could separate them.
 
 Merge each case when its array finishes:
 
