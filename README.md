@@ -5,7 +5,7 @@ This repository contains the benchmark, optimizers, and experiment scripts for t
 > **Artificial Bee Colony for Constrained Optimization in 6G-Motivated Analog Integrated Circuit Design: A Surrogate Benchmark and a SKY130 Cross-Check**
 > (under review, *Applied Soft Computing*).
 
-It reproduces all experiments in the paper: the main algorithm comparison and the penalty-scaling sensitivity analysis.
+It reproduces the experiments in the paper: the surrogate comparison and the penalty-scaling study of Section 5, and the transistor-level SKY130 cross-check of Section 6.
 
 ---
 
@@ -65,7 +65,7 @@ where `penalty(x)` counts violated specifications (a solution is feasible when `
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.9+ (the Section 6 campaigns ran on Python 3.9.16; Section 5 on 3.13.12)
 - `numpy`, `pandas`, `scipy`, `matplotlib` (and `Jinja2` for optional LaTeX table export)
 
 Install:

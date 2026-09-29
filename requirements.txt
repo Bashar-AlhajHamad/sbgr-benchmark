@@ -1,4 +1,4 @@
-# Pinned to the versions the published campaigns ran under, with the minimum each API needs.
+# Minimum versions required by the APIs used. The exact versions the campaigns ran under are recorded in the paper (Section 5) and in env.sh (Section 6).
 # run.py uses np.trapezoid, added in NumPy 2.0, and Axes.set_xticks(..., tick_labels=...), added in
 # matplotlib 3.9. An older environment raises inside a worker, and run_spice.py scores that as a
 # failed row rather than stopping -- so an unpinned install fails quietly.
