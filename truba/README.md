@@ -94,7 +94,8 @@ becomes 1.1–1.6 s/eval at 15.
 540 tasks = the published voltage-mode campaign's 540 runs, 2,686 measured run-hours in total (777, 749 and 1,160 for `base`, `hard` and `highdim`; see the main README).
 
 **One partition per case.** The three voltage-mode cases ran on `barbun`; the two current-mode
-cases (`banba`, `banba_cal`) ran on `orfoz`. Spreading one case's tasks over two partitions would
+cases (`banba`, `banba_cal`) ran on `orfoz`. The two further
+topologies (`opamp`, `ldo`) ran on `orfoz` as well. Spreading one case's tasks over two partitions would
 put part of the difference between two algorithms inside the difference between two CPUs, and no
 statistic downstream could separate them.
 
