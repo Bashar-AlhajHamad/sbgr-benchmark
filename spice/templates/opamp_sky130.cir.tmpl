@@ -1,0 +1,97 @@
+* SKY130 two-stage Miller-compensated operational amplifier.
+*
+* Circuit B of the case study. Topology is the textbook two-stage Miller amplifier as posed by
+* Hershenson, Boyd and Lee (IEEE TCAD 20(1):1-21, 2001), which is the canonical sizing benchmark in
+* this literature; this deck, its parameterisation and its testbenches are our own.
+*
+* WHY THIS CIRCUIT IS A FAIR SECOND TEST. It is structurally independent of the bandgap of Circuit A:
+* the objective is open-loop gain rather than supply rejection, there is no PTAT core, no start-up
+* branch and no temperature-coefficient specification, and the amplifier runs OPEN loop, so no
+* Tian probe and no loop-cut is needed. What it shares with Circuit A is only the process, the
+* evaluator and the protocol -- which is the point.
+*
+* SEVEN design variables, matching the dimension of Circuit A's base case so the two rankings are
+* compared at equal D. The bias current is a fixed ideal source at 10 uA: that is the same modelling
+* choice declared for Circuit A -- it isolates amplifier sizing from current-reference design -- and
+* it is disclosed, not hidden.
+*
+* WHY AN NMOS INPUT PAIR, AND NOT THE PMOS PAIR OF THE FIRST DRAFT. Measured on this PDK at L = 1 um,
+* tt, 27 C: |Vth| = 1.033 V for pfet_01v8 against 0.615 V for nfet_01v8. A PMOS pair therefore needs
+* an input common mode below Vdd - |Vth| - Vdsat = 1.8 - 1.03 - 0.2 = 0.57 V, so at the mid-rail
+* common mode of 0.9 V the pair sits below threshold, the tail device drops into its linear region and
+* the whole amplifier collapses -- which is exactly what the first version of this deck did
+* (Id = 0.157 uA in the input pair, Vds = 2.2 mV across the tail). An NMOS pair needs only
+* Vcm > Vth + Vdsat = 0.82 V, so mid-rail works with margin. Recorded here because it is a property
+* of this process, not a preference.
+*
+* MEASUREMENT NOTES, inherited from the bandgap deck and re-verified here:
+*   - `meas ac ... FIND v(x)` returns the REAL PART of a complex vector. Build a real magnitude
+*     first: `let vo = mag(v(out))`.
+*   - `vdb()` inside `meas` aborts the whole AC analysis in ngspice-46. Do not use it.
+*   - `.meas op` is rejected; operating-point values come from `op` + `print`, one probe per line so
+*     that a single unsupported probe cannot abort the rest.
+*   - `let` vectors are plot-scoped: keep arithmetic inside the plot that produced its inputs.
+*   - run `ac` BEFORE any `dc` sweep, which leaves the simulator at the sweep's last point.
+*
+* The differential drive is set up so that |v(out)| IS the open-loop differential gain: Vip and Vin
+* apply +0.5 and -0.5 V of AC about the common-mode point, so the differential input is exactly
+* 1 V and no division is needed. An NMOS pair with a PMOS mirror load inverts, so phase margin is
+* taken as 180 deg minus the phase ACCUMULATED between 100 Hz and the crossing, which is independent
+* of that polarity. Vdd carries AC 1 as well, but the two stimuli are never armed at the same time --
+* the evaluator zeroes one before sweeping the other, exactly as it does for the bandgap's PSRR and
+* loop-gain phases.
+
+.title SKY130 two-stage Miller operational amplifier
+* ${CORNER} is 'tt' for every OPTIMIZATION run; the placeholder exists so the process-and-supply
+* pass can re-simulate the SAME deck at ss/ff/sf/fs without a second copy of the netlist.
+* ${VDD_DC}: 1.8 V nominal, 1.62/1.98 for the +/-10 % sweep.
+.lib ${SKY130_LIB} ${CORNER}
+
+* ===== the seven design variables =====
+.param w1=${W1}        $ input pair M1/M2 width, um
+.param w3=${W3}        $ PMOS mirror load M3/M4 width, um
+.param w5=${W5}        $ NMOS tail sink and bias mirror width, um
+.param w6=${W6}        $ second-stage PMOS driver width, um
+.param w7=${W7}        $ second-stage NMOS sink load width, um
+.param l_all=${L_ALL}  $ common channel length, um
+.param cc=${CC}        $ Miller compensation capacitance, pF
+
+* ===== fixed bias reference: an ideal 10 uA source, mirrored by w5 =====
+* Same declared choice as Circuit A: the bias current is ideal so that what is being optimized is
+* amplifier sizing and not current-reference design.
+.param ibias=10
+
+Vdd vdd 0 DC ${VDD_DC} AC 1
+
+* common mode at mid-rail; +/-0.5 V AC gives exactly 1 V differential
+Vcm cm  0  DC '0.5*${VDD_DC}'
+Vip inp cm DC 0 AC  0.5
+Vin inn cm DC 0 AC -0.5
+
+* ---- bias mirror: 10 uA into an NMOS diode, mirrored to the tail and to the stage-2 sink ----
+Ib   vdd nb  dc 'ibias*1u'
+XMb  nb  nb  0   0   sky130_fd_pr__nfet_01v8 W={w5} L={l_all}
+
+* ---- stage 1: NMOS input pair, PMOS mirror load ----
+XM5  tail nb  0   0   sky130_fd_pr__nfet_01v8 W={w5} L={l_all}
+XM1  n1   inp tail 0  sky130_fd_pr__nfet_01v8 W={w1} L={l_all}
+XM2  no1  inn tail 0  sky130_fd_pr__nfet_01v8 W={w1} L={l_all}
+XM3  n1   n1  vdd vdd sky130_fd_pr__pfet_01v8 W={w3} L={l_all}
+XM4  no1  n1  vdd vdd sky130_fd_pr__pfet_01v8 W={w3} L={l_all}
+
+* ---- stage 2: PMOS driver with an NMOS current-sink load ----
+* Zero-systematic-offset condition, from M6's gate sitting at the M3/M4 mirror potential and M7
+* mirroring Mb:  W6/W3 = 2 * W7/W5.
+XM6  out  no1 vdd vdd sky130_fd_pr__pfet_01v8 W={w6} L={l_all}
+XM7  out  nb  0   0   sky130_fd_pr__nfet_01v8 W={w7} L={l_all}
+
+* ---- Miller compensation, no nulling resistor: the right-half-plane zero it leaves behind is
+* ---- exactly what the phase-margin specification has to pay for, which is the trade-off the
+* ---- optimizer is being asked to make.
+Cc no1 out 'cc*1p'
+
+* ---- a light load, so the measured bandwidth is a property of the amplifier and not of an
+* ---- arbitrarily large capacitor. Fixed, not optimized.
+Cl out 0 1p
+
+.end

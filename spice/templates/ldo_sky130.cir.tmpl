@@ -1,0 +1,127 @@
+* SKY130 low-dropout regulator (LDO).
+*
+* Circuit C of the case study. Topology follows the open-PDK LDO of Li and Carusone (ICCAD 2023,
+* `li2023ldosky130` in ref.bib), which is the one open-PDK analog-optimization precedent inside our
+* own citation chain; this deck, its parameterisation and its testbenches are our own.
+*
+* WHY THIS CIRCUIT IS THE *LESS* INDEPENDENT OF THE TWO NEW ONES, DELIBERATELY. It shares an error
+* amplifier with the bandgap of Circuit A, and its objective is supply rejection, as Circuit A's was.
+* That is the declared reason it is included: if optimizer ranking is topology-dependent, a partially
+* similar topology should sit between the two extremes -- Circuit B being structurally independent
+* and Circuit A being the original. A third circuit chosen to be maximally different would not test
+* that.
+*
+* SEVEN design variables, matching the dimension of Circuit A's base case and Circuit B's, so all
+* three rankings are compared at equal D and dimensionality is never a confound.
+*
+* IDEAL REFERENCE, DISCLOSED. Vref is an ideal 0.8 V source. This is the same modelling choice
+* declared for Circuit A's bias current and Circuit B's: it isolates regulator sizing from reference
+* design, which is what Circuit A already measured. It also means the reported PSRR does not include
+* any contribution from reference noise, and is therefore optimistic in absolute terms -- but it is
+* optimistic identically for all six optimizers, so it cannot affect the ranking, only the level.
+*
+* FEEDBACK POLARITY -- the first thing that has to be right, and easy to get backwards. The pass
+* device is a PMOS, so raising its gate turns it OFF. For negative feedback we need
+*
+*     v(out) rises  ->  v(fb) rises  ->  v(ea) rises  ->  pass device turns off  ->  v(out) falls
+*
+* The amplifier output `ea` is the drain of M2/M4, so `ea` is INVERTING with respect to M2's gate and
+* NON-INVERTING with respect to M1's gate. Therefore the feedback node drives M1 and the reference
+* drives M2. Wiring them the other way round gives positive feedback and the output latches to a
+* rail -- which looks exactly like a sizing problem and is not one.
+*
+* MEASUREMENT NOTES, inherited from the bandgap and op-amp decks and re-verified here:
+*   - `meas ac ... FIND v(x)` returns the REAL PART of a complex vector. Build a real magnitude
+*     first with `let m = mag(v(x))`.
+*   - `vdb()` inside `meas` aborts the whole AC analysis in ngspice-46. Do not use it.
+*   - `.meas op` is rejected; operating-point values come from `op` + `print`, one probe per line so
+*     that a single unsupported probe cannot abort the rest.
+*   - run `ac` BEFORE any `dc` sweep, which leaves the simulator at the sweep's last point.
+*   - `alterparam` needs a following `reset`, and the value must be a plain number: a NumPy scalar
+*     renders as `np.float64(...)`, the `.param` then fails silently, and ngspice exits -- which the
+*     harness sees as a TIMEOUT rather than as the fatal netlist error it is.
+*
+* STABILITY WITHOUT A LOOP-CUT. Phase margin here is not measured by breaking the loop. Circuit A
+* needed a two-phase Tian probe for that and it was the most fragile part of the whole harness. For a
+* regulator the closed-loop transfer from `ref` to `out` is measurable directly in one AC sweep, and
+* its PEAKING is a sound stability indicator: a well-damped loop is flat to its bandwidth, while an
+* underdamped one shows a resonant rise before rolling off.
+*
+* Peaking is a HARD FEASIBILITY LIMIT and not one of the six scored specifications -- 3 dB of rise
+* means the loop is marginally stable and the design is not a working regulator, so it is rejected as
+* a design that fails to regulate at any supply is rejected. It was tried as a scored specification
+* first and could not work: the threshold can never go below the reference design's own 0.0005 dB, and
+* even there 78 % of the design box passes, so binding it would need a negative threshold. Stability
+* is a yes/no property of a loop in any case. See PEAKING_HARD_LIMIT_DB in spice_problem_ldo.py.
+
+.title SKY130 low-dropout regulator
+* ${CORNER} is 'tt' for every OPTIMIZATION run; the placeholder exists so the process-and-supply
+* pass can re-simulate the SAME deck at ss/ff/sf/fs without a second copy of the netlist.
+* ${VDD_DC}: 1.8 V nominal, 1.62/1.98 for the +/-10 % sweep.
+.lib ${SKY130_LIB} ${CORNER}
+
+* ===== the seven design variables =====
+.param w1=${W1}        $ error-amplifier input pair M1/M2 width, um
+.param w3=${W3}        $ error-amplifier PMOS mirror load M3/M4 width, um
+.param w5=${W5}        $ error-amplifier NMOS tail sink and bias mirror width, um
+.param wpass=${WPASS}  $ PMOS pass device width, um
+.param l_all=${L_ALL}  $ common channel length for the amplifier, um
+.param rdiv=${RDIV}    $ feedback divider total resistance, kohm -- sets the divider's own current
+.param cc=${CC}        $ compensation capacitance, pF
+
+* ===== fixed by the problem, not optimized =====
+* The pass device is drawn at the minimum length: a regulator wants the largest transconductance per
+* unit area it can get, and lengthening it only adds dropout. It is therefore NOT tied to l_all,
+* which governs the amplifier where channel length buys gain.
+.param l_pass=0.15
+.param ibias=10        $ error-amplifier bias, uA, ideal
+.param iload=1.0       $ load current, mA -- the operating condition, swept for load regulation
+.param cl=100          $ output capacitance, pF, fixed: an LDO's stability is meaningless without it
+
+Vdd vdd 0 DC ${VDD_DC} AC 1
+
+* Ideal 0.8 V reference, and a 1:2 divider, so v(out) = 1.5 * v(ref) = 1.2 V.
+*
+* WHY 0.8 V AND NOT 0.6 V. Measured on this PDK: with a 0.6 V reference the error amplifier's tail
+* sink sat at v(tail) = 0.031 V, i.e. 31 mV of Vds against the ~130 mV it needs for saturation, so
+* the current source was degraded into a resistor and the input pair ran barely above threshold
+* (Vgs = 0.569 V against Vth = 0.64 V). The regulator still regulated -- v(fb) tracked v(ref) to
+* 0.6 mV -- which is exactly why this had to be measured rather than eyeballed: a starved amplifier
+* still closes the loop, it just does so with far less gain than it should, and that would have shown
+* up later as poor supply rejection blamed on sizing.
+*
+* An NMOS input pair on this process needs Vcm > Vth + Vdsat ~ 0.615 + 0.15 = 0.765 V. Raising the
+* reference to 0.8 V and changing the divider ratio from 1:1 to 1:2 keeps the SAME 1.2 V output while
+* giving the pair its headroom, and leaves 0.6 V of dropout across the pass device -- comfortable.
+* AC 0 by default; the closed-loop measurement arms it and disarms Vdd, never both at once.
+Vref ref 0 DC 0.8 AC 0
+
+* ---- error-amplifier bias: 10 uA into an NMOS diode, mirrored to the tail ----
+Ib   vdd nb  dc 'ibias*1u'
+XMb  nb  nb  0    0   sky130_fd_pr__nfet_01v8 W={w5} L={l_all}
+XM5  tail nb  0    0   sky130_fd_pr__nfet_01v8 W={w5} L={l_all}
+
+* ---- error amplifier: NMOS input pair, PMOS mirror load ----
+* fb drives M1 and ref drives M2, so that `ea` is non-inverting in fb. See the polarity note above.
+XM1  n1   fb  tail 0   sky130_fd_pr__nfet_01v8 W={w1} L={l_all}
+XM2  ea   ref tail 0   sky130_fd_pr__nfet_01v8 W={w1} L={l_all}
+XM3  n1   n1  vdd  vdd sky130_fd_pr__pfet_01v8 W={w3} L={l_all}
+XM4  ea   n1  vdd  vdd sky130_fd_pr__pfet_01v8 W={w3} L={l_all}
+
+* ---- PMOS pass device, gate driven by the amplifier ----
+XMP  out  ea  vdd  vdd sky130_fd_pr__pfet_01v8 W={wpass} L={l_pass}
+
+* ---- feedback divider, 1:2 so that v(out) = 1.5*v(ref) = 1.2 V when the loop is closed ----
+* The RATIO is fixed and the TOTAL is a design variable: the ratio sets the target output, which is a
+* specification rather than something to trade, while the total sets how much quiescent current the
+* divider itself burns -- a real trade-off against the accuracy the loop can hold.
+* rdiv is in kohm and the two legs are rdiv/3 and 2*rdiv/3, so R1+R2 = rdiv kohm exactly.
+R1 out fb 'rdiv*1000/3'
+R2 fb  0  'rdiv*2000/3'
+
+* ---- load and compensation ----
+Iload out 0 dc 'iload*1m'
+Cl    out 0 'cl*1p'
+Cc    ea  out 'cc*1p'
+
+.end

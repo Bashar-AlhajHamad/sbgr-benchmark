@@ -148,7 +148,10 @@ separating from all five baselines after Holm correction). Data: `results/opamp_
 `results/ldo_150k/` (the campaigns), `results/opamp/`, `results/ldo/` (the retained 2,500-evaluation
 runs), `results_spice_opamp/`, `results_spice_ldo/` (the 512-point calibration probes and
 reference-design searches). Reproduce with `run_spice_opamp.py` / `run_spice_ldo.py` and
-`truba/05_opamp_orfoz.slurm` / `truba/06_ldo_orfoz.slurm`. The pre-registration and the Circuit B
+`truba/05_opamp_orfoz.slurm` / `truba/06_ldo_orfoz.slurm`. The circuit
+definitions and netlist templates are `spice/spice_problem_opamp.py`,
+`spice/spice_problem_ldo.py`, `spice/templates/opamp_sky130.cir.tmpl` and
+`spice/templates/ldo_sky130.cir.tmpl`. The pre-registration and the Circuit B
 design record ship unedited at the repository root: `PREREGISTRATION_2026-08-26_circuits_2_and_3.md`,
 `CIRCUIT_B_DESIGN_FROZEN_2026-08-26.md`.
 
