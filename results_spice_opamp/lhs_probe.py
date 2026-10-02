@@ -12,7 +12,7 @@ Thresholds are set wide open so nothing is judged yet -- the point is to record 
 import csv, sys, time
 from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
-CODE = Path(r"C:\University\ABC\claude\code")
+CODE = Path(__file__).resolve().parents[1]  # the code directory, resolved relative to this script
 sys.path.insert(0, str(CODE / "spice"))
 import spice_problem_opamp as O
 from scipy.stats import qmc

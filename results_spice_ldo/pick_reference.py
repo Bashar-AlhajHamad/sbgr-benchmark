@@ -37,7 +37,7 @@ rather than a foregone one.
 import itertools, sys, time
 from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
-CODE = Path(r"C:\University\ABC\claude\code")
+CODE = Path(__file__).resolve().parents[1]  # the code directory, resolved relative to this script
 sys.path.insert(0, str(CODE / "spice"))
 import spice_problem_ldo as L
 
